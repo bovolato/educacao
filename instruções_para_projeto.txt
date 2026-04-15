@@ -1,0 +1,2539 @@
+Projeto: plataforma municipal de gestão educacional
+Linguagem: Laravel 12 com docker desktop.
+Banco de dados: MySQL com docker desktop.
+Frontend Clean, bonito e moderno.
+Framework: Tailwind CSS
+Framework: Alpine.js
+Endereço local: http://localhost/
+Endereço do banco (phpmyadmin): http://localhost:8080/
+Usuário: root
+Senha: password
+Banco de dados: educacao
+
+Visão macro do projeto
+Nome conceitual do sistema
+
+Pode pensar nele como:
+
+Sistema Integrado de Gestão Educacional Municipal
+
+ou algo mais curto tipo:
+
+SIGEM
+EducaSys
+MunEduca
+IntegraEdu
+SIGE Educação
+Estrutura geral do sistema
+
+O sistema pode ser dividido em 4 grandes áreas:
+
+1. Área da Secretaria Municipal de Educação
+
+É o cérebro do sistema. Controla tudo em nível municipal.
+
+Principais funções
+cadastro e gestão de escolas
+cadastro e gestão de alunos
+cadastro e gestão de professores e servidores
+controle de matrículas
+remanejamento de alunos
+zoneamento escolar
+transporte escolar
+merenda escolar
+materiais e patrimônio
+calendário letivo municipal
+grade curricular padrão do município
+acompanhamento de frequência e desempenho por escola
+relatórios gerais da rede
+indicadores educacionais
+gestão de vagas
+documentos oficiais
+comunicação com escolas
+auditoria e permissões
+O que a secretaria enxerga
+todas as escolas
+todas as turmas
+todos os alunos
+todos os professores
+indicadores comparativos entre escolas
+alertas de evasão, baixa frequência, atraso em lançamento de notas etc.
+2. Área da Escola
+
+Aqui cada escola gerencia sua operação diária.
+
+Principais funções
+cadastro complementar da unidade
+gestão de turmas
+vinculação de professores às turmas e disciplinas
+controle de matrículas da escola
+transferência interna
+organização de horários
+controle de salas
+acompanhamento de frequência
+acompanhamento de notas
+controle de material da escola
+biblioteca da escola
+agenda escolar
+emissão de documentos
+acompanhamento disciplinar
+acompanhamento pedagógico
+comunicação com pais/alunos
+O que a escola enxerga
+apenas seus próprios dados
+seus alunos
+seus professores
+suas turmas
+seus materiais
+seu estoque/local
+seus relatórios internos
+3. Área do Professor
+
+Área focada na rotina pedagógica.
+
+Principais funções
+visualizar turmas e alunos
+lançar presença
+lançar notas
+registrar conteúdo ministrado
+registrar plano de aula
+anexar materiais didáticos
+consultar grade/horários
+lançar ocorrências
+acompanhar desempenho da turma
+emitir diário de classe
+registrar avaliações e atividades
+acompanhar alunos com dificuldade
+comunicação com coordenação/escola
+O que o professor enxerga
+apenas as turmas/disciplina(s) dele
+lista de alunos
+frequência
+notas
+conteúdo dado
+materiais disponíveis
+calendário escolar
+4. Área do Aluno / Responsável
+
+Área de acompanhamento e transparência.
+
+Principais funções
+consultar frequência
+consultar notas
+consultar boletim
+consultar conteúdos das aulas
+consultar tarefas e avaliações
+baixar materiais
+consultar calendário escolar
+consultar avisos
+consultar transporte escolar
+consultar cardápio/merenda, se desejarem
+solicitar documentos
+acompanhar histórico escolar
+acompanhar ocorrências e comunicados
+O que o aluno/responsável enxerga
+apenas os dados do próprio aluno
+presença
+notas
+conteúdos
+avisos
+documentos liberados
+turma, escola e professor(es)
+Estrutura de módulos do sistema
+
+Agora a parte mais importante: quebrar o sistema em módulos.
+
+Módulo 1: Administração e Segurança
+
+Base de tudo.
+
+Funções
+login
+recuperação de senha
+perfis de acesso
+permissões por módulo
+auditoria de ações
+logs do sistema
+multiunidade
+parametrizações gerais
+Perfis sugeridos
+super admin
+secretaria municipal
+gestor escolar
+secretário escolar
+coordenador pedagógico
+professor
+aluno
+responsável
+motorista/transporte
+almoxarifado
+biblioteca
+Módulo 2: Cadastros Gerais
+
+Tudo que serve de base para os demais módulos.
+
+Cadastros
+município
+escolas
+séries
+anos letivos
+turnos
+disciplinas
+etapas de ensino
+calendários
+tipos de avaliação
+tipos de ocorrência
+cargos
+funcionários
+professores
+alunos
+responsáveis
+salas
+rotas de transporte
+veículos
+materiais
+livros
+fornecedores
+Módulo 3: Gestão de Alunos
+
+Foco total na vida escolar do aluno.
+
+Funções
+pré-cadastro
+matrícula
+rematrícula
+transferência
+enturmação
+histórico escolar
+vínculo com responsável
+documentos do aluno
+laudos/necessidades especiais
+acompanhamento pedagógico
+situação escolar
+evasão/cancelamento
+Dados importantes do aluno
+dados pessoais
+documentos
+endereço
+responsáveis
+escola atual
+turma atual
+necessidades especiais
+transporte
+benefícios
+histórico de matrícula
+Módulo 4: Gestão de Professores e Servidores
+Funções
+cadastro funcional
+lotação por escola
+vínculo com disciplinas
+carga horária
+turmas atribuídas
+horários
+afastamentos
+substituições
+documentação
+Módulo 5: Gestão Acadêmica
+
+Um dos núcleos do sistema.
+
+Funções
+criação de turmas
+composição de grade
+atribuição de disciplinas
+diário de classe
+frequência
+notas
+avaliações
+recuperação
+fechamento de bimestre/trimestre
+conselho de classe
+boletins
+histórico escolar
+Submódulos
+Turmas
+Matrículas
+Diário
+Frequência
+Avaliações
+Boletim
+Fechamento
+Módulo 6: Conteúdo Pedagógico
+Funções
+plano de ensino
+plano de aula
+registro de conteúdo ministrado
+atividades e tarefas
+materiais didáticos
+biblioteca digital
+objetivos por disciplina
+acompanhamento de execução do conteúdo
+
+Isso é ótimo porque deixa o sistema mais forte pedagogicamente, não só administrativo.
+
+Módulo 7: Transporte Escolar
+
+Esse módulo faz muito sentido em nível municipal.
+
+Funções
+cadastro de rotas
+veículos
+motoristas
+monitores
+alunos vinculados por rota
+turnos de transporte
+controle de utilização
+relatórios por escola/região
+manutenção básica dos veículos
+controle documental
+Módulo 8: Materiais, Almoxarifado e Patrimônio
+
+Como você citou materiais, vale separar bem isso.
+
+Funções
+cadastro de materiais
+entrada e saída
+distribuição por escola
+distribuição por turma ou professor
+controle de estoque
+patrimônio por unidade
+solicitação de materiais
+baixa de consumo
+inventário
+Pode separar em dois blocos
+almoxarifado/consumo
+patrimônio permanente
+Módulo 9: Biblioteca
+
+Opcional, mas muito valioso.
+
+Funções
+cadastro de livros
+exemplares
+empréstimos
+devoluções
+reservas
+histórico de leitura
+livros por escola
+biblioteca digital
+Módulo 10: Comunicação e Avisos
+Funções
+mural da secretaria
+mural da escola
+comunicados para professores
+comunicados para alunos/responsáveis
+notificações internas
+avisos por turma
+envio de documentos e anexos
+Módulo 11: Relatórios e Indicadores
+
+Esse módulo é essencial para gestor amar o sistema.
+
+Relatórios da secretaria
+total de alunos por escola
+alunos por série
+evasão escolar
+frequência média por escola
+desempenho por escola
+professores por unidade
+utilização de transporte
+distribuição de materiais
+vagas disponíveis
+Relatórios da escola
+matrículas por turma
+frequência por turma
+notas por disciplina
+alunos com baixa frequência
+alunos em recuperação
+material consumido
+ocorrências
+Módulo 12: Documentos e Emissões
+Documentos comuns
+declaração de matrícula
+declaração de frequência
+boletim
+histórico escolar
+ficha do aluno
+diário de classe
+relatórios administrativos
+comprovantes e protocolos
+Estrutura de perfis e escopo de acesso
+
+Isso aqui é crucial para o projeto não nascer errado.
+
+Secretaria Municipal
+
+Acesso a tudo da rede.
+
+Gestor Escolar
+
+Acesso total da própria escola.
+
+Secretaria Escolar
+
+Acesso a matrículas, alunos, documentos, turmas.
+
+Coordenador Pedagógico
+
+Acesso pedagógico, turmas, professores, desempenho.
+
+Professor
+
+Acesso somente às turmas/disciplina(s) vinculadas.
+
+Aluno
+
+Acesso apenas ao próprio painel.
+
+Responsável
+
+Acesso aos dados do(s) aluno(s) vinculados.
+
+Almoxarifado
+
+Acesso aos materiais/estoque.
+
+Transporte
+
+Acesso a rotas, veículos, alunos vinculados.
+
+Modelo estrutural do banco de dados
+
+Vou te passar uma base de pensamento, não o banco inteiro com 200 tabelas, porque senão vira caos. O ideal é separar em blocos.
+
+Bloco institucional
+municipios
+secretarias
+escolas
+etapas_ensino
+series
+turnos
+anos_letivos
+calendarios_letivos
+salas
+Bloco de usuários e acesso
+usuarios
+perfis
+permissoes
+usuario_perfil
+logs_acesso
+auditoria
+
+Aqui eu faria uma tabela única de usuários e depois separaria dados específicos.
+
+Exemplo:
+
+usuarios
+usuario_dados
+aluno_dados
+professor_dados
+responsavel_dados
+funcionario_dados
+
+Ou então:
+
+pessoas
+usuarios
+alunos
+professores
+responsaveis
+funcionarios
+
+Essa segunda opção costuma ficar melhor.
+
+Bloco de pessoas
+pessoas
+enderecos
+contatos
+documentos
+responsavel_aluno
+Bloco acadêmico
+matriculas
+historico_matriculas
+turmas
+turma_alunos
+turma_professores
+disciplinas
+grade_curricular
+turma_disciplinas
+horarios_aula
+diarios_classe
+frequencias
+avaliacoes
+notas
+recuperacoes
+ocorrencias
+conteudos_aula
+tarefas
+anexos_tarefas
+Bloco pedagógico
+planos_ensino
+planos_aula
+materiais_didaticos
+livros
+biblioteca_itens
+emprestimos_livros
+Bloco de materiais e patrimônio
+categorias_materiais
+materiais
+estoque_escola
+movimentacoes_estoque
+solicitacoes_materiais
+solicitacao_itens
+patrimonio_itens
+patrimonio_movimentacoes
+Bloco de transporte
+veiculos
+motoristas
+rotas
+pontos_rota
+alunos_transporte
+viagens_transporte
+manutencoes_veiculos
+Bloco de comunicação
+avisos
+aviso_destinatarios
+notificacoes
+mensagens
+anexos_mensagens
+Bloco documental
+documentos_modelos
+documentos_emitidos
+protocolos
+assinaturas
+Relações principais do sistema
+
+Pra você pensar a modelagem certa:
+
+um município tem várias escolas
+uma escola tem várias turmas
+uma turma pertence a uma série/ano
+uma turma tem vários alunos
+uma turma tem vários professores
+um professor pode ter várias disciplinas em várias turmas
+um aluno pode ter um ou mais responsáveis
+uma matrícula liga aluno + escola + ano letivo + turma
+a frequência pertence ao aluno dentro da turma/disciplina/data
+a nota pertence ao aluno dentro da avaliação/disciplina/período
+a escola pode ter seu próprio estoque/material
+a secretaria pode distribuir materiais para as escolas
+um aluno pode estar vinculado a uma rota de transporte
+Fluxo prático do sistema
+Fluxo da secretaria
+cadastra escolas
+cadastra calendário letivo
+cadastra séries e disciplinas
+cadastra professores e servidores
+abre período de matrícula
+acompanha distribuição dos alunos
+acompanha relatórios da rede
+Fluxo da escola
+organiza turmas
+vincula professores
+recebe/aloca alunos
+acompanha frequência e notas
+emite documentos
+solicita materiais
+comunica pais/alunos
+Fluxo do professor
+entra na turma
+vê alunos
+lança presença
+lança conteúdo da aula
+lança atividade/nota
+acompanha desempenho
+Fluxo do aluno
+entra no portal
+vê notas
+vê faltas
+vê conteúdo
+vê avisos
+baixa materiais
+Estrutura técnica recomendada
+
+Como você é dev, já vou puxar pro lado de arquitetura.
+
+Stack sugerida
+Backend: Laravel
+Frontend painel: Blade + Livewire ou Vue/React
+Banco: MySQL ou PostgreSQL
+API: REST API
+Autenticação: Laravel Sanctum ou JWT
+Permissões: Spatie Laravel Permission
+Filas: Redis + Queue
+Arquivos: S3/local
+Relatórios/PDF: DomPDF / Snappy / geração assíncrona
+Logs e auditoria: tabela própria + logs do Laravel
+Estrutura de módulos no código
+
+Uma estrutura boa seria por domínio, não tudo jogado por controller.
+
+Exemplo
+Administrativo
+Academico
+Alunos
+Professores
+Escolas
+Materiais
+Transporte
+Biblioteca
+Comunicacao
+Relatorios
+Documentos
+Configuracoes
+
+Dentro de cada módulo:
+
+Models
+Controllers
+Services
+Repositories
+Requests
+Policies
+Actions
+
+Isso ajuda demais num projeto desse tamanho.
+
+Ponto importante: multiunidade com escopo
+
+O sistema precisa nascer com essa lógica:
+
+usuário da secretaria vê tudo
+usuário da escola vê apenas sua escola
+professor vê só o que está vinculado a ele
+aluno vê só o próprio histórico
+
+Esse controle de escopo é tão importante quanto as permissões.
+
+Funcionalidades extras que valorizam muito o projeto
+
+Se quiser deixar o sistema realmente forte:
+
+dashboard com indicadores por escola
+painel de evasão escolar
+alerta de aluno com baixa frequência
+painel de desempenho por disciplina
+emissão automática de boletins
+portal do responsável
+app/mobile depois
+assinatura digital de documentos
+integração com transporte por rota
+biblioteca digital
+controle de merenda
+protocolo de solicitações
+calendário com eventos escolares
+mural de avisos por perfil
+Ordem ideal de desenvolvimento
+
+Para não tentar fazer tudo de uma vez:
+
+Fase 1 — Base do sistema
+autenticação
+usuários/perfis/permissões
+escolas
+alunos
+professores
+turmas
+matrículas
+Fase 2 — Acadêmico
+disciplinas
+frequência
+notas
+diário de classe
+boletim
+conteúdo ministrado
+Fase 3 — Gestão escolar
+documentos
+relatórios
+comunicação
+calendário
+ocorrências
+Fase 4 — Gestão municipal
+materiais
+transporte
+patrimônio
+indicadores avançados
+integrações
+Estrutura resumida do projeto
+Núcleo administrativo
+usuários
+perfis
+permissões
+escolas
+configurações
+Núcleo acadêmico
+alunos
+professores
+turmas
+disciplinas
+matrículas
+frequência
+notas
+boletins
+Núcleo pedagógico
+plano de aula
+conteúdo
+materiais
+tarefas
+biblioteca
+Núcleo operacional
+transporte
+almoxarifado
+patrimônio
+documentos
+comunicação
+Núcleo gerencial
+dashboards
+relatórios
+indicadores
+auditoria
+Minha visão sincera
+
+Pra um sistema desse porte, eu pensaria nele como:
+
+“ERP educacional municipal”
+
+porque ele não é só um portal de escola.
+Ele mistura:
+
+gestão administrativa
+gestão acadêmica
+gestão pedagógica
+gestão logística
+gestão documental
+gestão de indicadores
+
+Então a modelagem tem que nascer muito bem pensada, senão depois vira um monstro difícil de manter.
+
+Sugestão de nome dos módulos para apresentação
+
+Você pode apresentar assim:
+
+Gestão Institucional
+Gestão de Escolas
+Gestão Acadêmica
+Gestão Pedagógica
+Gestão de Alunos
+Gestão de Professores
+Gestão de Materiais
+Gestão de Transporte Escolar
+Portal do Aluno e Responsável
+Relatórios e Indicadores
+Resumo executivo que você poderia usar
+
+O projeto consiste em uma plataforma municipal integrada de gestão
+educacional, abrangendo a Secretaria de Educação, as unidades escolares,
+os professores, os alunos e seus responsáveis. O sistema deverá centralizar
+ processos administrativos, acadêmicos, pedagógicos e operacionais da rede
+  municipal, permitindo controle completo de escolas, turmas, matrículas,
+   professores, frequência, notas, conteúdo pedagógico, materiais, transporte
+    escolar, documentos e indicadores gerenciais.
+
+
+MODULOS, ESTRUTURA E ROADMAP
+
+mapa completo dos módulos
+estrutura inicial do banco
+roadmap de desenvolvimento por fases
+
+Assim você já consegue usar isso para:
+
+pensar no sistema
+passar para o Cursor
+começar modelagem
+dividir tarefas
+1. Mapa completo dos módulos do sistema
+
+Vou considerar o sistema como multi-escola, centralizado pela Secretaria Municipal de Educação.
+
+1.1. Núcleo Administrativo
+
+Responsável pela base do sistema.
+
+Módulos
+autenticação
+usuários
+perfis
+permissões
+auditoria
+configurações gerais
+parâmetros do município
+anos letivos
+calendários letivos
+Perfis principais
+super admin
+secretaria municipal
+gestor escolar
+secretário escolar
+coordenador
+professor
+aluno
+responsável
+almoxarifado
+transporte
+1.2. Módulo Secretaria Municipal
+
+Visão macro da rede municipal.
+
+Funções
+cadastro de escolas
+gestão de vagas da rede
+acompanhamento de matrículas
+acompanhamento por escola
+controle de professores
+distribuição de materiais
+controle de transporte escolar
+relatórios municipais
+indicadores por unidade
+calendário letivo municipal
+comunicação geral com as escolas
+1.3. Módulo Escolas
+
+Cada escola gerencia sua rotina interna.
+
+Funções
+dados da unidade
+organização de turmas
+vinculação de professores
+matrículas e rematrículas locais
+controle de alunos
+emissão de documentos
+controle de materiais próprios
+calendário escolar
+ocorrências
+acompanhamento pedagógico
+1.4. Módulo Acadêmico
+
+É o coração escolar do sistema.
+
+Funções
+séries/anos
+turmas
+disciplinas
+grade curricular
+matrícula
+rematrícula
+transferência
+enturmação
+diário de classe
+frequência
+notas
+avaliações
+recuperação
+boletim
+histórico escolar
+1.5. Módulo Pedagógico
+
+Mais voltado ao trabalho do professor e coordenação.
+
+Funções
+plano de ensino
+plano de aula
+conteúdo ministrado
+tarefas
+atividades
+material didático
+biblioteca de arquivos
+acompanhamento de execução curricular
+1.6. Módulo Professor
+
+Portal específico do professor.
+
+Funções
+ver turmas
+ver alunos
+lançar presença
+lançar notas
+lançar conteúdo
+anexar materiais
+consultar horários
+registrar avaliações
+registrar ocorrências
+emitir diário da turma
+1.7. Módulo Aluno / Responsável
+
+Portal de consulta.
+
+Funções
+consultar frequência
+consultar notas
+consultar boletim
+consultar conteúdo das aulas
+baixar materiais
+ver tarefas
+ver avaliações
+ver avisos
+solicitar documentos
+acompanhar histórico
+1.8. Módulo Transporte Escolar
+
+Muito útil em rede municipal.
+
+Funções
+cadastro de rotas
+pontos
+motoristas
+veículos
+monitores
+alunos vinculados ao transporte
+controle por turno
+relatórios por rota e escola
+1.9. Módulo Materiais / Almoxarifado
+
+Para a secretaria e também para as escolas.
+
+Funções
+cadastro de materiais
+categorias
+entrada de estoque
+saída/distribuição
+solicitação de materiais
+estoque por escola
+movimentações
+inventário
+1.10. Módulo Patrimônio
+
+Separado do almoxarifado.
+
+Funções
+cadastro de bens
+número patrimonial
+localização por escola/sala
+transferência de patrimônio
+baixa
+inventário patrimonial
+1.11. Módulo Comunicação
+Funções
+mural de avisos
+comunicados por escola
+comunicados por turma
+avisos para professores
+avisos para responsáveis
+notificações internas
+1.12. Módulo Relatórios e Indicadores
+Exemplos
+alunos por escola
+alunos por série
+frequência média por turma
+desempenho por disciplina
+evasão escolar
+alunos com baixa frequência
+professores por escola
+uso do transporte
+distribuição de materiais
+vagas por unidade
+2. Estrutura inicial do banco de dados
+
+Aqui eu vou montar uma base sólida e escalável, sem exagerar em microtabelas logo de cara.
+
+A melhor forma é separar por domínio.
+
+2.1. Base institucional
+tabelas
+municipios
+secretarias
+escolas
+anos_letivos
+calendarios_letivos
+etapas_ensino
+series
+turnos
+salas
+ideia
+
+Essas tabelas definem a estrutura da rede e das unidades.
+
+2.2. Pessoas e usuários
+
+Eu faria uma estrutura unificada de pessoas para não duplicar cadastro.
+
+tabelas
+pessoas
+pessoa_documentos
+pessoa_enderecos
+pessoa_contatos
+usuarios
+perfis
+permissoes
+usuario_perfis
+especializações
+alunos
+professores
+responsaveis
+funcionarios
+relacionamento
+pessoas guarda dados comuns
+usuarios guarda login/acesso
+tabelas específicas guardam os dados de cada papel
+exemplo de lógica
+
+Uma pessoa pode ser:
+
+professor
+responsável
+funcionário
+
+E isso evita cadastrar a mesma pessoa várias vezes.
+
+2.3. Estrutura escolar
+tabelas
+escolas
+escola_professores
+escola_funcionarios
+escola_salas
+escola_disciplinas
+2.4. Acadêmico
+tabelas
+disciplinas
+grades_curriculares
+grade_disciplinas
+turmas
+turma_disciplinas
+turma_professores
+turma_alunos
+matriculas
+historico_matriculas
+observação
+
+A matrícula deve ser a base da vida escolar do aluno naquele ano letivo.
+
+2.5. Frequência e diário
+tabelas
+aulas
+diarios_classe
+frequencias
+conteudos_aula
+ideia prática
+aulas: aula prevista ou realizada
+conteudos_aula: o que foi ministrado
+frequencias: presença/falta por aluno em cada aula ou data
+diarios_classe: fechamento geral por turma/disciplina/período
+2.6. Avaliações e notas
+tabelas
+avaliacoes
+avaliacao_alunos
+notas
+recuperacoes
+boletins
+outra opção melhor
+
+Você pode até simplificar e usar:
+
+avaliacoes
+notas
+
+Onde cada nota já referencia:
+
+aluno
+turma
+disciplina
+período
+avaliação
+2.7. Pedagógico
+tabelas
+planos_ensino
+planos_aula
+materiais_didaticos
+tarefas
+tarefa_alunos
+anexos_materiais
+2.8. Responsáveis
+tabelas
+responsavel_aluno
+
+Essa é indispensável, porque um aluno pode ter mais de um responsável, e um responsável pode ter mais de um aluno.
+
+2.9. Transporte
+tabelas
+veiculos
+motoristas
+rotas
+rota_pontos
+aluno_rotas
+viagens_transporte
+2.10. Almoxarifado / materiais
+tabelas
+categorias_materiais
+materiais
+estoque_escolas
+movimentacoes_estoque
+solicitacoes_materiais
+solicitacao_materiais_itens
+2.11. Patrimônio
+tabelas
+patrimonio_itens
+patrimonio_movimentacoes
+patrimonio_localizacoes
+2.12. Comunicação
+tabelas
+avisos
+aviso_destinatarios
+notificacoes
+mensagens
+2.13. Documentos
+tabelas
+tipos_documentos
+documentos_emitidos
+protocolos
+2.14. Auditoria e logs
+tabelas
+logs_acesso
+auditoria_acoes
+
+Isso num sistema municipal é muito importante.
+
+3. Relações principais do banco
+
+Aqui está a espinha dorsal:
+
+um município tem várias escolas
+uma escola tem várias turmas
+uma turma pertence a um ano letivo
+uma turma possui várias disciplinas
+uma turma possui vários professores
+uma turma possui vários alunos
+um aluno possui uma ou mais matrículas
+um aluno pode ter vários responsáveis
+um professor pode atuar em várias escolas/turmas
+uma frequência pertence a um aluno em uma aula/data
+uma nota pertence a um aluno em uma avaliação/disciplina
+uma escola possui seu próprio estoque
+um aluno pode estar vinculado a uma rota de transporte
+4. Estrutura sugerida de menu por perfil
+Secretaria
+dashboard municipal
+escolas
+alunos
+professores
+matrículas
+transporte
+materiais
+patrimônio
+relatórios
+parâmetros
+Escola
+dashboard da escola
+turmas
+matrículas
+alunos
+professores
+frequência
+notas
+documentos
+materiais
+avisos
+Professor
+minhas turmas
+diário
+frequência
+notas
+conteúdo
+tarefas
+materiais
+Aluno / Responsável
+painel
+notas
+frequência
+boletim
+aulas e conteúdos
+tarefas
+avisos
+documentos
+5. Roadmap de desenvolvimento
+
+Agora a parte mais útil pra você conseguir começar sem se perder.
+
+Fase 1 — Fundação do sistema
+
+Objetivo: deixar o sistema de pé.
+
+fazer primeiro
+autenticação
+usuários
+perfis e permissões
+cadastro de escolas
+cadastro de pessoas
+alunos
+professores
+responsáveis
+anos letivos
+séries
+disciplinas
+turmas
+resultado da fase
+
+Você já tem a estrutura básica da rede e dos acessos.
+
+Fase 2 — Matrículas e organização escolar
+fazer
+matrícula
+rematrícula
+transferência
+enturmação
+vínculo aluno x responsável
+vínculo professor x turma x disciplina
+resultado
+
+O sistema já consegue organizar a vida escolar.
+
+Fase 3 — Rotina acadêmica
+fazer
+diário de classe
+frequência
+lançamento de conteúdo
+avaliações
+notas
+boletim
+resultado
+
+O professor já consegue operar o dia a dia.
+
+Fase 4 — Portal do aluno e responsável
+fazer
+consulta de frequência
+consulta de notas
+consulta de conteúdo
+avisos
+boletim online
+documentos
+resultado
+
+O sistema ganha transparência e valor percebido.
+
+Fase 5 — Gestão municipal avançada
+fazer
+relatórios consolidados
+indicadores por escola
+transporte escolar
+materiais
+patrimônio
+comunicação geral
+resultado
+
+A secretaria passa a usar o sistema como plataforma de gestão da rede.
+
+Fase 6 — Recursos extras
+fazer depois
+app mobile
+assinatura digital
+biblioteca
+merenda
+protocolo de solicitações
+BI/dashboard avançado
+6. Estrutura técnica sugerida em Laravel
+
+Como você é dev, eu já deixaria o projeto organizado por domínio.
+
+Sugestão de organização
+Administrativo
+Institucional
+Pessoas
+Academico
+Pedagogico
+Transporte
+Materiais
+Patrimonio
+Comunicacao
+Relatorios
+Dentro de cada módulo
+Models
+Controllers
+Requests
+Services
+Policies
+Actions
+Repositories
+
+Isso fica muito melhor do que um projeto cheio de controller gigante.
+
+7. Estrutura de tabelas prioritárias para começar
+
+Se eu fosse começar esse sistema hoje, eu criaria primeiro essas tabelas:
+
+núcleo
+usuarios
+perfis
+permissoes
+usuario_perfis
+pessoas
+pessoas
+pessoa_contatos
+pessoa_enderecos
+alunos
+professores
+responsaveis
+responsavel_aluno
+institucional
+escolas
+anos_letivos
+series
+disciplinas
+turnos
+salas
+acadêmico
+turmas
+matriculas
+turma_alunos
+turma_professores
+turma_disciplinas
+operação escolar
+frequencias
+avaliacoes
+notas
+conteudos_aula
+avisos
+8. Dica importante de modelagem
+
+Eu faria o sistema com escopo por unidade escolar desde o começo.
+
+Exemplo:
+
+usuário da secretaria: acesso global
+usuário da escola: acesso filtrado pela escola
+professor: acesso filtrado pelas turmas atribuídas
+aluno/responsável: acesso filtrado ao próprio vínculo
+
+Se isso não nascer certo, depois dá muita dor de cabeça.
+
+9. Prompt base para você mandar no Cursor
+
+Você falou que queria pensar bem no projeto. Então já deixo um prompt base forte pra usar.
+
+Escrita
+
+Crie a estrutura inicial de um sistema municipal de gestão educacional em Laravel, com arquitetura modular e separação por domínios.
+
+O sistema deverá atender quatro áreas principais:
+
+Secretaria Municipal de Educação
+Unidade Escolar
+Professor
+Aluno/Responsável
+
+Requisitos principais do sistema:
+
+multi-escola
+controle por perfis e permissões
+gestão de escolas
+gestão de alunos, professores e responsáveis
+anos letivos, séries, disciplinas e turmas
+matrículas, rematrículas e transferências
+vínculo professor x turma x disciplina
+diário de classe
+frequência
+avaliações e notas
+boletim
+conteúdo ministrado
+avisos e comunicação
+transporte escolar
+materiais e almoxarifado
+relatórios gerenciais
+
+Quero que a estrutura seja organizada por módulos/domínios, contendo:
+
+sugestão de pastas
+models principais
+migrations iniciais
+relacionamentos entre entidades
+services e controllers sugeridos
+ordem de implementação por fases
+
+Considere boas práticas para Laravel, escalabilidade e clareza de manutenção.
+
+10. Minha sugestão mais pé no chão
+
+Pra não explodir o projeto logo de cara, eu faria o MVP assim:
+
+MVP
+login e perfis
+escolas
+alunos
+professores
+responsáveis
+turmas
+disciplinas
+matrículas
+frequência
+notas
+boletim
+portal do aluno
+
+Isso já entrega um sistema forte.
+
+Depois você expande com:
+
+transporte
+materiais
+patrimônio
+comunicação avançada
+indicadores municipais
+11. Nome dos módulos, bonitinho para documentação
+Gestão Institucional
+Gestão de Pessoas
+Gestão Escolar
+Gestão Acadêmica
+Gestão Pedagógica
+Portal do Professor
+Portal do Aluno
+Transporte Escolar
+Almoxarifado e Materiais
+Patrimônio
+Comunicação
+Relatórios e Indicadores
+
+ESBOÇO DO BANCO DE DADOS
+
+1. Módulo institucional
+1. municipios
+
+Guarda os dados do município dono da rede.
+
+Campos principais
+id
+nome
+uf
+codigo_ibge
+cnpj
+telefone
+email
+endereco
+ativo
+created_at
+updated_at
+Relacionamentos
+1 município tem muitas escolas
+1 município tem muitos anos letivos
+1 município tem muitos calendários
+2. escolas
+
+Cadastro das escolas da rede.
+
+Campos principais
+id
+municipio_id
+nome
+codigo
+inep
+cnpj
+telefone
+email
+logradouro
+numero
+bairro
+cidade
+uf
+cep
+diretor_nome
+status
+created_at
+updated_at
+Relacionamentos
+pertence a municipios
+tem muitas salas
+tem muitas turmas
+tem muitas matriculas
+tem muitos estoque_escolas
+tem muitos avisos
+tem muitos patrimonio_itens
+3. anos_letivos
+
+Controla os anos letivos do município.
+
+Campos principais
+id
+municipio_id
+descricao ex: 2026
+data_inicio
+data_fim
+ativo
+encerrado
+created_at
+updated_at
+Relacionamentos
+pertence a municipios
+tem muitas turmas
+tem muitas matriculas
+pode ter muitos calendarios_letivos
+4. calendarios_letivos
+
+Calendário geral do município ou da escola.
+
+Campos principais
+id
+municipio_id
+escola_id nullable
+ano_letivo_id
+descricao
+data_inicio
+data_fim
+observacoes
+created_at
+updated_at
+Relacionamentos
+pertence a municipios
+pertence a escolas opcionalmente
+pertence a anos_letivos
+5. etapas_ensino
+
+Ex: Educação Infantil, Fundamental I, Fundamental II.
+
+Campos principais
+id
+municipio_id
+nome
+ordem
+ativo
+created_at
+updated_at
+Relacionamentos
+pertence a municipios
+tem muitas series
+6. series
+
+Ex: 1º ano, 2º ano, 6º ano etc.
+
+Campos principais
+id
+etapa_ensino_id
+nome
+sigla
+ordem
+ativo
+created_at
+updated_at
+Relacionamentos
+pertence a etapas_ensino
+tem muitas turmas
+pode estar em muitas grades_curriculares
+7. turnos
+
+Ex: manhã, tarde, noite, integral.
+
+Campos principais
+id
+municipio_id
+nome
+hora_inicio
+hora_fim
+ativo
+created_at
+updated_at
+Relacionamentos
+pertence a municipios
+tem muitas turmas
+8. salas
+
+Salas físicas da escola.
+
+Campos principais
+id
+escola_id
+nome
+codigo
+capacidade
+tipo
+ativo
+created_at
+updated_at
+Relacionamentos
+pertence a escolas
+pode ter muitas turmas
+pode ter muitos patrimonio_itens
+2. Módulo pessoas e acesso
+
+Essa parte eu recomendo fortemente fazer com pessoa centralizada, pra não duplicar cadastro.
+
+9. pessoas
+
+Tabela base de qualquer pessoa do sistema.
+
+Campos principais
+id
+nome
+nome_social
+cpf
+rg
+data_nascimento
+sexo
+estado_civil
+nome_mae
+nome_pai
+foto
+observacoes
+ativo
+created_at
+updated_at
+Relacionamentos
+tem um ou muitos pessoa_contatos
+tem um ou muitos pessoa_enderecos
+pode ter um usuario
+pode ter um aluno
+pode ter um professor
+pode ter um responsavel
+pode ter um funcionario
+10. pessoa_contatos
+
+Telefones, emails etc.
+
+Campos principais
+id
+pessoa_id
+tipo (celular, fixo, email, whatsapp)
+valor
+principal
+created_at
+updated_at
+Relacionamentos
+pertence a pessoas
+11. pessoa_enderecos
+
+Endereço da pessoa.
+
+Campos principais
+id
+pessoa_id
+logradouro
+numero
+complemento
+bairro
+cidade
+uf
+cep
+principal
+created_at
+updated_at
+Relacionamentos
+pertence a pessoas
+12. usuarios
+
+Login do sistema.
+
+Campos principais
+id
+pessoa_id
+name
+email
+password
+ultimo_login_em
+ultimo_ip
+ativo
+created_at
+updated_at
+Relacionamentos
+pertence a pessoas
+tem muitos usuario_perfis
+pode ter muitas ações em auditoria_acoes
+13. perfis
+
+Perfis de acesso.
+
+Campos principais
+id
+nome
+slug
+descricao
+created_at
+updated_at
+Relacionamentos
+tem muitos usuario_perfis
+pode ter muitas permissões se você criar tabela pivot
+14. usuario_perfis
+
+Vínculo usuário x perfil.
+
+Campos principais
+id
+usuario_id
+perfil_id
+escola_id nullable
+created_at
+updated_at
+Relacionamentos
+pertence a usuarios
+pertence a perfis
+pode pertencer a escolas
+
+Esse escola_id é útil porque o cara pode ser gestor de uma escola específica.
+
+15. alunos
+
+Dados específicos do aluno.
+
+Campos principais
+id
+pessoa_id
+ra ou codigo_aluno
+nis
+sus
+necessidades_especiais
+observacoes_saude
+ativo
+created_at
+updated_at
+Relacionamentos
+pertence a pessoas
+tem muitas matriculas
+tem muitos responsavel_aluno
+pode ter vínculo com aluno_rotas
+tem muitas frequencias
+tem muitas notas
+16. responsaveis
+
+Dados específicos do responsável.
+
+Campos principais
+id
+pessoa_id
+tipo_responsavel ex: mãe, pai, avó, tutor
+responsavel_legal
+financeiro
+recebe_notificacao
+created_at
+updated_at
+Relacionamentos
+pertence a pessoas
+tem muitos responsavel_aluno
+17. responsavel_aluno
+
+Pivot entre responsáveis e alunos.
+
+Campos principais
+id
+responsavel_id
+aluno_id
+grau_parentesco
+responsavel_principal
+retira_aluno
+recebe_boletim
+created_at
+updated_at
+Relacionamentos
+pertence a responsaveis
+pertence a alunos
+18. professores
+
+Dados específicos do professor.
+
+Campos principais
+id
+pessoa_id
+matricula_funcional
+formacao
+registro_profissional
+data_admissao
+ativo
+created_at
+updated_at
+Relacionamentos
+pertence a pessoas
+pode ter muitas turma_professores
+pode ter muitos planos_aula
+pode ter muitos conteudos_aula
+19. funcionarios
+
+Para outros servidores da educação.
+
+Campos principais
+id
+pessoa_id
+matricula_funcional
+cargo
+setor
+data_admissao
+ativo
+created_at
+updated_at
+Relacionamentos
+pertence a pessoas
+pode ser vinculado à escola, se quiser tabela extra
+3. Módulo acadêmico
+20. disciplinas
+
+Cadastro das matérias.
+
+Campos principais
+id
+municipio_id
+nome
+sigla
+carga_horaria
+ativo
+created_at
+updated_at
+Relacionamentos
+pertence a municipios
+participa de grade_disciplinas
+participa de turma_disciplinas
+21. grades_curriculares
+
+Grade por série.
+
+Campos principais
+id
+municipio_id
+etapa_ensino_id
+serie_id
+ano_letivo_id
+nome
+ativo
+created_at
+updated_at
+Relacionamentos
+pertence a municipios
+pertence a series
+pertence a anos_letivos
+tem muitas grade_disciplinas
+22. grade_disciplinas
+
+Disciplinas da grade curricular.
+
+Campos principais
+id
+grade_curricular_id
+disciplina_id
+carga_horaria
+ordem
+obrigatoria
+created_at
+updated_at
+Relacionamentos
+pertence a grades_curriculares
+pertence a disciplinas
+23. turmas
+
+Turmas da escola.
+
+Campos principais
+id
+escola_id
+ano_letivo_id
+serie_id
+turno_id
+sala_id nullable
+nome ex: 6º A
+codigo
+capacidade
+status
+created_at
+updated_at
+Relacionamentos
+pertence a escolas
+pertence a anos_letivos
+pertence a series
+pertence a turnos
+pertence a salas
+tem muitas matriculas
+tem muitas turma_professores
+tem muitas turma_disciplinas
+tem muitas aulas
+24. turma_disciplinas
+
+Quais disciplinas aquela turma possui.
+
+Campos principais
+id
+turma_id
+disciplina_id
+carga_horaria
+created_at
+updated_at
+Relacionamentos
+pertence a turmas
+pertence a disciplinas
+pode ter muitos turma_professores
+pode ter muitas aulas
+25. turma_professores
+
+Professor vinculado à turma/disciplina.
+
+Campos principais
+id
+turma_id
+disciplina_id
+professor_id
+titular
+created_at
+updated_at
+Relacionamentos
+pertence a turmas
+pertence a disciplinas
+pertence a professores
+26. matriculas
+
+Registro formal do aluno no ano letivo/escola/turma.
+
+Campos principais
+id
+aluno_id
+escola_id
+ano_letivo_id
+turma_id nullable
+numero_matricula
+data_matricula
+situacao ativa, transferido, cancelada, concluída
+origem
+observacoes
+created_at
+updated_at
+Relacionamentos
+pertence a alunos
+pertence a escolas
+pertence a anos_letivos
+pertence a turmas
+tem muitas frequencias
+tem muitas notas
+27. historico_matriculas
+
+Histórico de movimentação escolar.
+
+Campos principais
+id
+matricula_id
+tipo_movimentacao matrícula, rematrícula, transferência, cancelamento
+data_movimentacao
+descricao
+usuario_id
+created_at
+updated_at
+Relacionamentos
+pertence a matriculas
+pertence a usuarios
+4. Módulo diário, frequência e conteúdo
+28. aulas
+
+Aula dada ou prevista.
+
+Campos principais
+id
+turma_id
+disciplina_id
+professor_id
+data_aula
+hora_inicio
+hora_fim
+status prevista, realizada, cancelada
+created_at
+updated_at
+Relacionamentos
+pertence a turmas
+pertence a disciplinas
+pertence a professores
+tem um ou muitos conteudos_aula
+tem muitas frequencias
+29. conteudos_aula
+
+Conteúdo ministrado na aula.
+
+Campos principais
+id
+aula_id
+professor_id
+titulo
+descricao
+material_utilizado
+tarefa_passada
+created_at
+updated_at
+Relacionamentos
+pertence a aulas
+pertence a professores
+30. frequencias
+
+Presença/falta do aluno.
+
+Campos principais
+id
+matricula_id
+aula_id
+aluno_id
+situacao presente, falta, justificada, atraso
+observacao
+created_at
+updated_at
+Relacionamentos
+pertence a matriculas
+pertence a aulas
+pertence a alunos
+5. Módulo avaliações e notas
+31. avaliacoes
+
+Provas, trabalhos, atividades.
+
+Campos principais
+id
+turma_id
+disciplina_id
+professor_id
+titulo
+tipo
+data_avaliacao
+valor
+periodo
+descricao
+created_at
+updated_at
+Relacionamentos
+pertence a turmas
+pertence a disciplinas
+pertence a professores
+tem muitas notas
+32. notas
+
+Nota do aluno em cada avaliação.
+
+Campos principais
+id
+avaliacao_id
+aluno_id
+matricula_id
+nota
+falta_na_avaliacao
+observacao
+created_at
+updated_at
+Relacionamentos
+pertence a avaliacoes
+pertence a alunos
+pertence a matriculas
+33. boletins
+
+Fechamento por período.
+
+Campos principais
+id
+matricula_id
+disciplina_id
+periodo
+media
+faltas
+situacao
+fechado_em
+created_at
+updated_at
+Relacionamentos
+pertence a matriculas
+pertence a disciplinas
+6. Módulo pedagógico
+34. planos_ensino
+
+Plano macro por disciplina/turma/período.
+
+Campos principais
+id
+professor_id
+turma_id
+disciplina_id
+ano_letivo_id
+titulo
+objetivos
+metodologia
+criterios_avaliacao
+created_at
+updated_at
+Relacionamentos
+pertence a professores
+pertence a turmas
+pertence a disciplinas
+pertence a anos_letivos
+35. planos_aula
+
+Planejamento específico.
+
+Campos principais
+id
+professor_id
+turma_id
+disciplina_id
+data_prevista
+titulo
+objetivos
+conteudo_previsto
+recursos
+created_at
+updated_at
+Relacionamentos
+pertence a professores
+pertence a turmas
+pertence a disciplinas
+36. materiais_didaticos
+
+Arquivos, apostilas, links, livros digitais etc.
+
+Campos principais
+id
+professor_id
+disciplina_id nullable
+turma_id nullable
+titulo
+descricao
+arquivo
+link
+visivel_aluno
+created_at
+updated_at
+Relacionamentos
+pertence a professores
+pode pertencer a disciplinas
+pode pertencer a turmas
+37. tarefas
+
+Atividades passadas para casa ou sala.
+
+Campos principais
+id
+turma_id
+disciplina_id
+professor_id
+titulo
+descricao
+data_postagem
+data_entrega
+valor
+created_at
+updated_at
+Relacionamentos
+pertence a turmas
+pertence a disciplinas
+pertence a professores
+7. Módulo transporte escolar
+38. veiculos
+
+Cadastro dos veículos.
+
+Campos principais
+id
+municipio_id
+placa
+modelo
+capacidade
+ano
+status
+created_at
+updated_at
+Relacionamentos
+pertence a municipios
+pode ter muitas rotas
+39. motoristas
+
+Cadastro dos motoristas.
+
+Campos principais
+id
+pessoa_id
+cnh
+categoria_cnh
+validade_cnh
+ativo
+created_at
+updated_at
+Relacionamentos
+pertence a pessoas
+pode ter muitas rotas
+40. rotas
+
+Rotas do transporte escolar.
+
+Campos principais
+id
+municipio_id
+escola_id
+veiculo_id
+motorista_id
+descricao
+turno_id
+ativo
+created_at
+updated_at
+Relacionamentos
+pertence a municipios
+pertence a escolas
+pertence a veiculos
+pertence a motoristas
+tem muitos rota_pontos
+tem muitos aluno_rotas
+41. rota_pontos
+
+Pontos de parada.
+
+Campos principais
+id
+rota_id
+descricao
+endereco
+ordem
+created_at
+updated_at
+Relacionamentos
+pertence a rotas
+42. aluno_rotas
+
+Vínculo aluno x rota.
+
+Campos principais
+id
+aluno_id
+rota_id
+ponto_embarque_id
+ativo
+created_at
+updated_at
+Relacionamentos
+pertence a alunos
+pertence a rotas
+pertence a rota_pontos
+8. Módulo materiais / almoxarifado
+43. categorias_materiais
+
+Categorias dos itens.
+
+Campos principais
+id
+nome
+descricao
+created_at
+updated_at
+Relacionamentos
+tem muitos materiais
+44. materiais
+
+Cadastro dos itens.
+
+Campos principais
+id
+categoria_material_id
+codigo
+nome
+descricao
+unidade_medida
+controla_estoque
+ativo
+created_at
+updated_at
+Relacionamentos
+pertence a categorias_materiais
+tem muitos estoque_escolas
+tem muitas movimentacoes_estoque
+45. estoque_escolas
+
+Saldo por escola.
+
+Campos principais
+id
+escola_id
+material_id
+quantidade
+estoque_minimo
+created_at
+updated_at
+Relacionamentos
+pertence a escolas
+pertence a materiais
+46. movimentacoes_estoque
+
+Entradas, saídas, ajustes.
+
+Campos principais
+id
+escola_id
+material_id
+tipo_movimentacao entrada, saída, ajuste
+quantidade
+origem
+observacao
+usuario_id
+created_at
+updated_at
+Relacionamentos
+pertence a escolas
+pertence a materiais
+pertence a usuarios
+47. solicitacoes_materiais
+
+Pedido da escola.
+
+Campos principais
+id
+escola_id
+solicitante_usuario_id
+status
+data_solicitacao
+observacao
+created_at
+updated_at
+Relacionamentos
+pertence a escolas
+pertence a usuarios
+tem muitos solicitacao_materiais_itens
+48. solicitacao_materiais_itens
+
+Itens da solicitação.
+
+Campos principais
+id
+solicitacao_material_id
+material_id
+quantidade_solicitada
+quantidade_atendida
+created_at
+updated_at
+Relacionamentos
+pertence a solicitacoes_materiais
+pertence a materiais
+9. Módulo patrimônio
+49. patrimonio_itens
+
+Bens permanentes.
+
+Campos principais
+id
+escola_id
+sala_id nullable
+codigo_patrimonio
+descricao
+marca
+modelo
+numero_serie
+data_aquisicao
+valor_aquisicao
+situacao
+created_at
+updated_at
+Relacionamentos
+pertence a escolas
+pertence a salas
+tem muitas patrimonio_movimentacoes
+50. patrimonio_movimentacoes
+
+Movimentação e histórico do bem.
+
+Campos principais
+id
+patrimonio_item_id
+sala_origem_id nullable
+sala_destino_id nullable
+tipo_movimentacao
+data_movimentacao
+observacao
+usuario_id
+created_at
+updated_at
+Relacionamentos
+pertence a patrimonio_itens
+pertence a salas
+pertence a usuarios
+10. Módulo comunicação
+51. avisos
+
+Avisos da secretaria ou escola.
+
+Campos principais
+id
+municipio_id
+escola_id nullable
+usuario_id
+titulo
+mensagem
+tipo_destino geral, escola, turma, perfil
+publicado_em
+ativo
+created_at
+updated_at
+Relacionamentos
+pertence a municipios
+pode pertencer a escolas
+pertence a usuarios
+tem muitos aviso_destinatarios
+52. aviso_destinatarios
+
+Define pra quem vai o aviso.
+
+Campos principais
+id
+aviso_id
+perfil_id nullable
+turma_id nullable
+usuario_id nullable
+created_at
+updated_at
+Relacionamentos
+pertence a avisos
+pode pertencer a perfis
+pode pertencer a turmas
+pode pertencer a usuarios
+11. Módulo documentos e auditoria
+53. documentos_emitidos
+
+Documentos gerados para aluno.
+
+Campos principais
+id
+aluno_id
+matricula_id nullable
+tipo_documento
+arquivo
+emitido_por_usuario_id
+emitido_em
+created_at
+updated_at
+Relacionamentos
+pertence a alunos
+pertence a matriculas
+pertence a usuarios
+54. auditoria_acoes
+
+Log importante do sistema.
+
+Campos principais
+id
+usuario_id
+acao
+tabela
+registro_id
+dados_anteriores
+dados_novos
+ip
+user_agent
+created_at
+Relacionamentos
+pertence a usuarios
+12. Relações principais resumidas
+
+Aqui está a espinha dorsal do banco:
+
+Institucional
+municipios 1:N escolas
+municipios 1:N anos_letivos
+etapas_ensino 1:N series
+escolas 1:N salas
+turnos 1:N turmas
+Pessoas
+pessoas 1:1 usuarios
+pessoas 1:1 alunos
+pessoas 1:1 professores
+pessoas 1:1 responsaveis
+alunos N:N responsaveis via responsavel_aluno
+Acadêmico
+escolas 1:N turmas
+series 1:N turmas
+anos_letivos 1:N turmas
+turmas N:N disciplinas via turma_disciplinas
+turmas N:N professores via turma_professores
+alunos 1:N matriculas
+turmas 1:N matriculas
+Frequência e notas
+aulas pertencem a turmas, disciplinas, professores
+frequencias pertencem a aulas, alunos, matriculas
+avaliacoes pertencem a turmas, disciplinas, professores
+notas pertencem a avaliacoes, alunos, matriculas
+boletins pertencem a matriculas e disciplinas
+Transporte
+rotas pertencem a veiculos, motoristas, escolas
+alunos N:N rotas via aluno_rotas
+Estoque
+materiais 1:N estoque_escolas
+escolas 1:N estoque_escolas
+materiais 1:N movimentacoes_estoque
+13. Tabelas mais essenciais para o MVP
+
+Se quiser começar sem enlouquecer, eu priorizaria essas:
+
+base
+municipios
+escolas
+anos_letivos
+series
+turnos
+salas
+pessoas e acesso
+pessoas
+pessoa_contatos
+pessoa_enderecos
+usuarios
+perfis
+usuario_perfis
+alunos
+professores
+responsaveis
+responsavel_aluno
+acadêmico
+disciplinas
+turmas
+turma_disciplinas
+turma_professores
+matriculas
+rotina escolar
+aulas
+conteudos_aula
+frequencias
+avaliacoes
+notas
+boletins
+avisos
+14. Minha recomendação prática de modelagem
+
+Pra ficar robusto mesmo:
+
+não duplicar aluno, professor e responsável em tabelas totalmente separadas de dados pessoais
+usar pessoas como base
+usar matriculas como registro principal da vida escolar
+usar turma_professores pra vincular professor na disciplina certa
+usar frequencias por aula
+usar notas por avaliação
+deixar boletins como tabela de fechamento, não como origem da nota
+
+Ou seja:
+
+origem real = frequência + avaliações + notas
+resumo/fechamento = boletim
+
+Isso é o que costuma funcionar melhor.
+
+15. Mini DER textual
+
+Pra você visualizar rápido:
+
+município -> escolas
+escola -> salas
+escola -> turmas
+pessoa -> aluno
+pessoa -> professor
+pessoa -> responsável
+aluno -> matrículas
+responsável <-> aluno
+turma -> disciplinas
+turma -> professores
+turma -> matrículas
+aula -> conteúdo
+aula -> frequências
+avaliação -> notas
+matrícula -> boletins
+16. Observação importante
+
+Em um projeto desse tamanho, eu separaria as migrations por blocos:
+
+institucionais
+pessoas e acesso
+acadêmico
+frequência e notas
+pedagógico
+transporte
+materiais
+patrimônio
+comunicação
+auditoria
+
+Assim o projeto fica muito mais controlado.
+
+17. Rotas: cache e auditoria (evitar RouteNotFoundException)
+
+Após alterar routes/web.php ou routes/auth.php:
+
+- Em desenvolvimento: rode `php artisan route:clear` se aparecer erro "Route [nome] not defined" mesmo com a rota declarada no arquivo — em geral o Laravel está usando um `bootstrap/cache/routes-*.php` antigo (gerado por `php artisan route:cache`).
+- Em produção: se o deploy usa `route:cache`, execute `php artisan route:cache` de novo após cada deploy que mudar rotas (o cache deve ser gerado com o código novo).
+
+Auditoria opcional (PHP 8.4 no projeto):
+
+- `php artisan route:audit-views` — verifica se os `route('...')` estáticos em `resources/views` existem.
+- `php artisan route:audit-views --also-controllers` — inclui também referências `->route('...')` nos controllers.
+
+Validação manual rápida: `php artisan route:list --name=admin.escolas.salas` (deve listar index, create, store, edit, update, destroy com prefixo admin).

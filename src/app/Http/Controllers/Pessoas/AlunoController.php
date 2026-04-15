@@ -13,12 +13,22 @@ class AlunoController extends Controller
 {
     public function index(Request $request)
     {
-        $alunos = Aluno::with(['pessoa', 'matriculas.turma', 'matriculas.escola'])
-            ->whereHas('pessoa', function ($q) use ($request) {
-                if ($request->filled('busca')) {
-                    $q->where('nome', 'like', '%' . $request->busca . '%')
-                      ->orWhere('cpf', 'like', '%' . $request->busca . '%');
-                }
+        $alunos = Aluno::query()
+            ->with([
+                'pessoa:id,nome,cpf',
+                'matriculas' => function ($q) {
+                    $q->with([
+                        'turma:id,nome',
+                        'escola:id,nome',
+                    ]);
+                },
+            ])
+            ->when($request->filled('busca'), function ($q) use ($request) {
+                $term = '%'.$request->busca.'%';
+                $q->whereHas('pessoa', function ($q) use ($term) {
+                    $q->where('nome', 'like', $term)
+                        ->orWhere('cpf', 'like', $term);
+                });
             })
             ->when($request->filled('status'), function ($q) use ($request) {
                 if ($request->status === 'ativo') {
@@ -27,9 +37,10 @@ class AlunoController extends Controller
                     $q->where('ativo', false);
                 }
             })
-            ->when(!$request->filled('busca'), fn($q) => $q->where('ativo', true))
-            ->orderBy('id', 'desc')
-            ->paginate(20)->withQueryString();
+            ->when(! $request->filled('busca'), fn ($q) => $q->where('ativo', true))
+            ->orderByDesc('id')
+            ->paginate(20)
+            ->withQueryString();
 
         return view('pessoas.alunos.index', compact('alunos'));
     }

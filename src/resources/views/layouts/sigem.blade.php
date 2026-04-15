@@ -7,8 +7,15 @@
 
     <title>{{ isset($title) ? $title . ' — ' : '' }}{{ config('app.name', 'SIGEM') }}</title>
 
+    {{-- Fonte sem bloquear renderização (LCP): carrega como "print" e aplica ao terminar --}}
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet"
+          href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700&display=swap"
+          media="print"
+          onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700&display=swap">
+    </noscript>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -58,7 +65,7 @@
             <div x-show="!sidebarCollapsed" class="px-4 py-3 border-b border-indigo-800">
                 <p class="text-xs text-indigo-300 uppercase tracking-widest mb-1">Logado como</p>
                 <p class="text-white text-sm font-medium truncate">{{ Auth::user()->name }}</p>
-                <p class="text-indigo-300 text-xs truncate">{{ Auth::user()->getRoleNames()->first() ?? 'Sem perfil' }}</p>
+                <p class="text-indigo-300 text-xs truncate">{{ Auth::user()->roles->first()?->name ?? 'Sem perfil' }}</p>
             </div>
 
             {{-- Navegação --}}

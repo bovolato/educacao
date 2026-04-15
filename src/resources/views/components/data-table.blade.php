@@ -8,7 +8,7 @@
     @endif
 
     <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+        <table class="sigem-lcp-table w-full text-sm">
             @if(isset($head))
                 <thead>
                     <tr class="bg-gray-50 border-b border-gray-100">

@@ -2537,3 +2537,7 @@ Auditoria opcional (PHP 8.4 no projeto):
 - `php artisan route:audit-views --also-controllers` — inclui também referências `->route('...')` nos controllers.
 
 Validação manual rápida: `php artisan route:list --name=admin.escolas.salas` (deve listar index, create, store, edit, update, destroy com prefixo admin).
+
+Navegação (lentidão ao trocar de página): cada clique no menu é uma requisição HTTP completa (Blade), não é SPA. O middleware `LoadAuthenticatedUserRoles` carrega as roles do usuário uma vez por request; em dev, `APP_DEBUG=true`, sessão em banco e `npm run dev` (Vite) também aumentam o tempo percebido — em produção use `npm run build`, `APP_DEBUG=false` e considere sessão/cache em Redis se necessário.
+
+LCP (Largest Contentful Paint) em listagens com tabela: o layout SIGEM carrega a fonte Inter sem bloquear a primeira pintura (`media="print"` + `onload`); tabelas usam `content-visibility` nas linhas; índices `(ativo, id)` em `professores` e `alunos` aceleram o padrão “só ativos, ordenado por id” — após puxar migrations, rode `php artisan migrate` e `npm run build` no front.

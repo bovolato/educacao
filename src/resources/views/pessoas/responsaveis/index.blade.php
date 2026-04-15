@@ -32,7 +32,7 @@
                 </td>
                 <td class="px-5 py-3.5 text-sm text-gray-600">{{ $resp->tipo_responsavel }}</td>
                 <td class="px-5 py-3.5 text-center">
-                    <span class="text-sm font-semibold text-gray-700">{{ $resp->alunos->count() }}</span>
+                    <span class="text-sm font-semibold text-gray-700">{{ $resp->alunos_count }}</span>
                 </td>
                 <td class="px-5 py-3.5">
                     <div class="flex items-center justify-end gap-2">

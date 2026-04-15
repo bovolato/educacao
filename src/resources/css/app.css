@@ -1,3 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * Reduz trabalho de layout/pintura em tabelas longas: linhas fora da área visível são pintadas depois.
+ * Melhora LCP e scroll em listagens (professores, alunos, etc.).
+ */
+@layer utilities {
+    .sigem-lcp-table tbody tr {
+        content-visibility: auto;
+        contain-intrinsic-size: auto 3.5rem;
+    }
+}

@@ -12,14 +12,16 @@ class ResponsavelController extends Controller
 {
     public function index(Request $request)
     {
-        $responsaveis = Responsavel::with(['pessoa', 'alunos.pessoa'])
-            ->whereHas('pessoa', function ($q) use ($request) {
-                if ($request->filled('busca')) {
-                    $q->where('nome', 'like', '%' . $request->busca . '%');
-                }
+        $responsaveis = Responsavel::query()
+            ->with(['pessoa:id,nome,cpf'])
+            ->withCount('alunos')
+            ->when($request->filled('busca'), function ($q) use ($request) {
+                $term = '%'.$request->busca.'%';
+                $q->whereHas('pessoa', fn ($q) => $q->where('nome', 'like', $term));
             })
-            ->orderBy('id', 'desc')
-            ->paginate(20)->withQueryString();
+            ->orderByDesc('id')
+            ->paginate(20)
+            ->withQueryString();
 
         return view('pessoas.responsaveis.index', compact('responsaveis'));
     }

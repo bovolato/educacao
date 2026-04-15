@@ -1,4 +1,6 @@
 @php
+    use Illuminate\Support\Facades\Route;
+
     $user = Auth::user();
     $currentRoute = request()->route()?->getName() ?? '';
 
@@ -119,13 +121,8 @@
         </p>
         @foreach($group['items'] as $item)
             @php
-                try {
-                    $url = route($item['route']);
-                    $isActive = request()->routeIs($item['route']) || request()->routeIs($item['route'] . '.*');
-                } catch(\Exception $e) {
-                    $url = '#';
-                    $isActive = false;
-                }
+                $url = Route::has($item['route']) ? route($item['route']) : '#';
+                $isActive = $url !== '#' && (request()->routeIs($item['route']) || request()->routeIs($item['route'] . '.*'));
             @endphp
             <a href="{{ $url }}"
                class="{{ $isActive

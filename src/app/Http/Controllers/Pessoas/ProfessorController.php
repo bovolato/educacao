@@ -14,19 +14,26 @@ class ProfessorController extends Controller
 {
     public function index(Request $request)
     {
-        $professores = Professor::with(['pessoa', 'escola'])
-            ->whereHas('pessoa', function ($q) use ($request) {
-                if ($request->filled('busca')) {
-                    $q->where('nome', 'like', '%' . $request->busca . '%');
-                }
+        $professores = Professor::query()
+            ->with([
+                'pessoa:id,nome',
+                'escola:id,nome',
+            ])
+            ->when($request->filled('busca'), function ($q) use ($request) {
+                $term = '%'.$request->busca.'%';
+                $q->whereHas('pessoa', fn ($q) => $q->where('nome', 'like', $term));
             })
-            ->when($request->filled('escola'), fn($q) => $q->where('escola_id', $request->escola))
-            ->when($request->filled('ativo'), fn($q) => $q->where('ativo', $request->ativo === '1'))
-            ->when(!$request->filled('busca') && !$request->filled('ativo'), fn($q) => $q->where('ativo', true))
-            ->orderBy('id', 'desc')
-            ->paginate(20)->withQueryString();
+            ->when($request->filled('escola'), fn ($q) => $q->where('escola_id', $request->escola))
+            ->when($request->filled('ativo'), fn ($q) => $q->where('ativo', $request->ativo === '1'))
+            ->when(! $request->filled('busca') && ! $request->filled('ativo'), fn ($q) => $q->where('ativo', true))
+            ->orderByDesc('id')
+            ->paginate(20)
+            ->withQueryString();
 
-        $escolas = Escola::where('status', 'ativa')->orderBy('nome')->get();
+        $escolas = Escola::query()
+            ->where('status', 'ativa')
+            ->orderBy('nome')
+            ->get(['id', 'nome']);
 
         return view('pessoas.professores.index', compact('professores', 'escolas'));
     }

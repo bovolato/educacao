@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Academico;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Academico\TurmaRequest;
-use App\Models\Academico\{Turma, Disciplina};
+use App\Models\Academico\{Turma, Disciplina, Matricula};
 use App\Models\Institucional\{Escola, AnoLetivo, Serie, Turno, Sala};
 use Illuminate\Http\Request;
 
@@ -18,7 +18,7 @@ class TurmaController extends Controller
             ->when($request->filled('status'), fn($q) => $q->where('status', $request->status))
             ->when($request->filled('serie'), fn($q) => $q->where('serie_id', $request->serie))
             ->orderBy('nome')
-            ->paginate(20)->withQueryString();
+            ->paginate(10)->withQueryString();
 
         $series = Serie::where('ativo', true)->orderBy('nome')->get();
 
@@ -44,14 +44,42 @@ class TurmaController extends Controller
 
     public function show(Turma $turma)
     {
-        $turma->load([
-            'escola', 'serie', 'turno', 'anoLetivo', 'sala',
-            'disciplinas',
-            'professores.pessoa',
-            'matriculasAtivas.aluno.pessoa',
-        ]);
+        $turma->load(['escola', 'serie', 'turno', 'anoLetivo', 'sala']);
 
-        return view('academico.turmas.show', compact('turma'));
+        $matriculasTurma = Matricula::query()
+            ->where('turma_id', $turma->id)
+            ->where('situacao', 'ativa')
+            ->with(['aluno.pessoa'])
+            ->join('alunos', 'matriculas.aluno_id', '=', 'alunos.id')
+            ->join('pessoas', 'alunos.pessoa_id', '=', 'pessoas.id')
+            ->orderBy('pessoas.nome')
+            ->select('matriculas.*')
+            ->paginate(10, ['*'], 'alunos_page')
+            ->withQueryString();
+
+        $disciplinasTurma = $turma->disciplinas()
+            ->orderBy('disciplinas.nome')
+            ->paginate(10, ['*'], 'disciplinas_page')
+            ->withQueryString();
+
+        $professoresTurma = $turma->professores()
+            ->with('pessoa')
+            ->paginate(10, ['*'], 'professores_page')
+            ->withQueryString();
+
+        $disciplinasPorId = Disciplina::query()
+            ->whereIn(
+                'id',
+                $professoresTurma->getCollection()->pluck('pivot.disciplina_id')->unique()->filter()->values()
+            )->get()->keyBy('id');
+
+        return view('academico.turmas.show', compact(
+            'turma',
+            'matriculasTurma',
+            'disciplinasTurma',
+            'professoresTurma',
+            'disciplinasPorId'
+        ));
     }
 
     public function edit(Turma $turma)

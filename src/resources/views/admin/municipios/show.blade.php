@@ -52,7 +52,7 @@
             <div class="bg-white rounded-2xl border border-gray-200">
                 <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                     <h3 class="font-semibold text-gray-800">Escolas do Município</h3>
-                    <span class="text-sm text-gray-500">{{ $escolas->count() }} escola(s)</span>
+                    <span class="text-sm text-gray-500">{{ $escolas->total() }} escola(s)</span>
                 </div>
                 @if($escolas->isEmpty())
                     <p class="px-6 py-8 text-center text-gray-500 text-sm">Nenhuma escola cadastrada neste município.</p>
@@ -67,6 +67,9 @@
                                 <a href="{{ route('admin.escolas.show', $escola) }}" class="text-xs text-indigo-600 hover:underline">Ver escola</a>
                             </div>
                         @endforeach
+                    </div>
+                    <div class="px-6 py-3 border-t border-gray-100">
+                        {{ $escolas->links() }}
                     </div>
                 @endif
             </div>

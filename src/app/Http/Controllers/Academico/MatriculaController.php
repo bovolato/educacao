@@ -20,7 +20,7 @@ class MatriculaController extends Controller
             ->when($request->filled('turma'), fn($q) => $q->where('turma_id', $request->turma))
             ->when($request->filled('escola'), fn($q) => $q->where('escola_id', $request->escola))
             ->orderByDesc('data_matricula')
-            ->paginate(20)->withQueryString();
+            ->paginate(10)->withQueryString();
 
         $turmas  = Turma::where('status', 'ativa')->with('serie')->orderBy('nome')->get();
         $escolas = Escola::where('status', 'ativa')->orderBy('nome')->get();

@@ -39,7 +39,7 @@ class AlunoController extends Controller
             })
             ->when(! $request->filled('busca'), fn ($q) => $q->where('ativo', true))
             ->orderByDesc('id')
-            ->paginate(20)
+            ->paginate(10)
             ->withQueryString();
 
         return view('pessoas.alunos.index', compact('alunos'));

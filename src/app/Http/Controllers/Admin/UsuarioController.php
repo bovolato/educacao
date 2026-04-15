@@ -19,7 +19,7 @@ class UsuarioController extends Controller
                 ->orWhere('email', 'like', '%' . $request->busca . '%'))
             ->when($request->filled('perfil'), fn($q) => $q->whereHas('roles', fn($r) => $r->where('name', $request->perfil)))
             ->when($request->filled('ativo'), fn($q) => $q->where('ativo', $request->ativo === '1'))
-            ->orderBy('name')->paginate(20)->withQueryString();
+            ->orderBy('name')->paginate(10)->withQueryString();
 
         $perfis = Role::orderBy('name')->get();
 

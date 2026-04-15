@@ -11,7 +11,7 @@ class SalaController extends Controller
 {
     public function index(Escola $escola)
     {
-        $salas = $escola->salas()->orderBy('nome')->paginate(20);
+        $salas = $escola->salas()->orderBy('nome')->paginate(10)->withQueryString();
         return view('admin.escolas.salas.index', compact('escola', 'salas'));
     }
 

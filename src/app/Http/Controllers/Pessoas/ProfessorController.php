@@ -27,7 +27,7 @@ class ProfessorController extends Controller
             ->when($request->filled('ativo'), fn ($q) => $q->where('ativo', $request->ativo === '1'))
             ->when(! $request->filled('busca') && ! $request->filled('ativo'), fn ($q) => $q->where('ativo', true))
             ->orderByDesc('id')
-            ->paginate(20)
+            ->paginate(10)
             ->withQueryString();
 
         $escolas = Escola::query()

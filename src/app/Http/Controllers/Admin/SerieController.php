@@ -15,7 +15,7 @@ class SerieController extends Controller
             ->when($request->filled('busca'), fn($q) => $q->where('nome', 'like', '%' . $request->busca . '%'))
             ->when($request->filled('etapa'), fn($q) => $q->where('etapa_ensino_id', $request->etapa))
             ->orderBy('etapa_ensino_id')->orderBy('ordem')
-            ->paginate(20)->withQueryString();
+            ->paginate(10)->withQueryString();
 
         $etapas = EtapaEnsino::orderBy('nome')->get();
 

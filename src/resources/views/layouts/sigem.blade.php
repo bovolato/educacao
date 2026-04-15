@@ -20,6 +20,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans antialiased bg-gray-50 text-gray-900">
+    @php($userNav = auth()->user())
 
     <div class="flex h-screen overflow-hidden">
 
@@ -64,8 +65,8 @@
             {{-- Perfil do usuário --}}
             <div x-show="!sidebarCollapsed" class="px-4 py-3 border-b border-indigo-800">
                 <p class="text-xs text-indigo-300 uppercase tracking-widest mb-1">Logado como</p>
-                <p class="text-white text-sm font-medium truncate">{{ Auth::user()->name }}</p>
-                <p class="text-indigo-300 text-xs truncate">{{ Auth::user()->roles->first()?->name ?? 'Sem perfil' }}</p>
+                <p class="text-white text-sm font-medium truncate">{{ $userNav->name }}</p>
+                <p class="text-indigo-300 text-xs truncate">{{ $userNav->roles->first()?->name ?? 'Sem perfil' }}</p>
             </div>
 
             {{-- Navegação --}}
@@ -118,9 +119,9 @@
                     <div x-data="{ open: false }" class="relative">
                         <button @click="open = !open" class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100">
                             <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
-                                <span class="text-white text-sm font-medium">{{ strtoupper(substr(Auth::user()->name, 0, 2)) }}</span>
+                                <span class="text-white text-sm font-medium">{{ strtoupper(substr($userNav->name, 0, 2)) }}</span>
                             </div>
-                            <span class="hidden sm:block text-sm font-medium text-gray-700">{{ Auth::user()->name }}</span>
+                            <span class="hidden sm:block text-sm font-medium text-gray-700">{{ $userNav->name }}</span>
                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>

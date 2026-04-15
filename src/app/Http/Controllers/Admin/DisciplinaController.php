@@ -17,7 +17,7 @@ class DisciplinaController extends Controller
                 ->orWhere('sigla', 'like', '%' . $request->busca . '%'))
             ->when($request->filled('ativo'), fn($q) => $q->where('ativo', $request->ativo === '1'))
             ->orderBy('nome')
-            ->paginate(20)->withQueryString();
+            ->paginate(10)->withQueryString();
 
         return view('admin.disciplinas.index', compact('disciplinas'));
     }

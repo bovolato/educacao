@@ -59,7 +59,7 @@
                 <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                     <h3 class="font-semibold text-gray-800">Turmas Ativas</h3>
                     <div class="flex items-center gap-3">
-                        <span class="text-sm text-gray-500">{{ $turmas->count() }} turma(s)</span>
+                        <span class="text-sm text-gray-500">{{ $turmas->total() }} turma(s)</span>
                         <a href="{{ route('academico.turmas.create') }}?escola_id={{ $escola->id }}" class="text-xs text-indigo-600 hover:underline font-medium">+ Nova Turma</a>
                     </div>
                 </div>
@@ -80,24 +80,30 @@
                             </div>
                         @endforeach
                     </div>
+                    <div class="px-6 py-3 border-t border-gray-100">
+                        {{ $turmas->links() }}
+                    </div>
                 @endif
             </div>
 
             <div class="bg-white rounded-2xl border border-gray-200">
                 <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                     <h3 class="font-semibold text-gray-800">Professores</h3>
-                    <span class="text-sm text-gray-500">{{ $escola->professores->count() }} professor(es)</span>
+                    <span class="text-sm text-gray-500">{{ $professores->total() }} professor(es)</span>
                 </div>
-                @if($escola->professores->isEmpty())
+                @if($professores->isEmpty())
                     <p class="px-6 py-8 text-center text-gray-500 text-sm">Nenhum professor vinculado.</p>
                 @else
                     <div class="divide-y divide-gray-100">
-                        @foreach($escola->professores->where('ativo', true) as $professor)
+                        @foreach($professores as $professor)
                             <div class="px-6 py-3 flex items-center justify-between">
                                 <p class="text-sm font-medium text-gray-800">{{ $professor->pessoa->nome }}</p>
                                 <a href="{{ route('pessoas.professores.show', $professor) }}" class="text-xs text-indigo-600 hover:underline">Ver</a>
                             </div>
                         @endforeach
+                    </div>
+                    <div class="px-6 py-3 border-t border-gray-100">
+                        {{ $professores->links() }}
                     </div>
                 @endif
             </div>
@@ -118,7 +124,7 @@
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">Turmas ativas</span>
-                        <span class="text-sm font-semibold text-gray-800">{{ $turmas->count() }}</span>
+                        <span class="text-sm font-semibold text-gray-800">{{ $turmas->total() }}</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">Alunos matriculados</span>
@@ -126,7 +132,7 @@
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">Professores</span>
-                        <span class="text-sm font-semibold text-gray-800">{{ $escola->professores->where('ativo', true)->count() }}</span>
+                        <span class="text-sm font-semibold text-gray-800">{{ $professores->total() }}</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">Salas</span>

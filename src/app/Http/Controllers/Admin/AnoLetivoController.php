@@ -14,7 +14,7 @@ class AnoLetivoController extends Controller
         $anos = AnoLetivo::with('municipio')
             ->when($request->filled('busca'), fn($q) => $q->where('descricao', 'like', '%' . $request->busca . '%'))
             ->orderByDesc('descricao')
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
 
         return view('admin.anos-letivos.index', compact('anos'));

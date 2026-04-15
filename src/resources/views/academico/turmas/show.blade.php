@@ -12,7 +12,7 @@
             ['Turno', $turma->turno->nome ?? '—', 'blue'],
             ['Sala', $turma->sala->nome ?? '—', 'violet'],
             ['Capacidade', $turma->capacidade ?? '—', 'gray'],
-            ['Alunos', $turma->matriculasAtivas->count(), 'green'],
+            ['Alunos', $matriculasTurma->total(), 'green'],
         ] as [$label, $valor, $cor])
             <div class="bg-white rounded-2xl border border-gray-200 p-4 text-center">
                 <p class="text-xs text-gray-500 uppercase mb-1">{{ $label }}</p>
@@ -26,21 +26,24 @@
         <div class="bg-white rounded-2xl border border-gray-200">
             <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
                 <h3 class="font-semibold text-gray-800">Alunos Matriculados</h3>
-                <span class="text-sm text-gray-500">{{ $turma->matriculasAtivas->count() }} aluno(s)</span>
+                <span class="text-sm text-gray-500">{{ $matriculasTurma->total() }} aluno(s)</span>
             </div>
-            @if($turma->matriculasAtivas->isEmpty())
+            @if($matriculasTurma->isEmpty())
                 <p class="px-6 py-8 text-center text-gray-500 text-sm">Nenhum aluno matriculado.</p>
             @else
-                <div class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
-                    @foreach($turma->matriculasAtivas->sortBy(fn($m) => $m->aluno->pessoa->nome) as $i => $matricula)
+                <div class="divide-y divide-gray-100">
+                    @foreach($matriculasTurma as $i => $matricula)
                         <div class="px-6 py-2.5 flex items-center justify-between">
                             <div class="flex items-center gap-3">
-                                <span class="text-xs text-gray-400 w-5">{{ $i + 1 }}.</span>
+                                <span class="text-xs text-gray-400 w-5">{{ $matriculasTurma->firstItem() + $i }}.</span>
                                 <p class="text-sm text-gray-800">{{ $matricula->aluno->pessoa->nome }}</p>
                             </div>
                             <a href="{{ route('pessoas.alunos.show', $matricula->aluno) }}" class="text-xs text-indigo-600 hover:underline">ver</a>
                         </div>
                     @endforeach
+                </div>
+                <div class="px-6 py-3 border-t border-gray-100">
+                    {{ $matriculasTurma->links() }}
                 </div>
             @endif
         </div>
@@ -49,13 +52,13 @@
             <div class="px-6 py-4 border-b border-gray-100">
                 <h3 class="font-semibold text-gray-800">Professores e Disciplinas</h3>
             </div>
-            @if($turma->professores->isEmpty())
+            @if($professoresTurma->isEmpty())
                 <p class="px-6 py-8 text-center text-gray-500 text-sm">Nenhum professor vinculado.</p>
             @else
                 <div class="divide-y divide-gray-100">
-                    @foreach($turma->professores as $professor)
+                    @foreach($professoresTurma as $professor)
                         @php
-                            $disciplina = \App\Models\Academico\Disciplina::find($professor->pivot->disciplina_id);
+                            $disciplina = $disciplinasPorId->get($professor->pivot->disciplina_id);
                         @endphp
                         <div class="px-6 py-3 flex items-center justify-between">
                             <div>
@@ -69,18 +72,22 @@
                         </div>
                     @endforeach
                 </div>
+                <div class="px-6 py-3 border-t border-gray-100">
+                    {{ $professoresTurma->links() }}
+                </div>
             @endif
         </div>
 
         <div class="bg-white rounded-2xl border border-gray-200 lg:col-span-2">
-            <div class="px-6 py-4 border-b border-gray-100">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
                 <h3 class="font-semibold text-gray-800">Disciplinas da Turma</h3>
+                <span class="text-sm text-gray-500">{{ $disciplinasTurma->total() }} disciplina(s)</span>
             </div>
-            @if($turma->disciplinas->isEmpty())
+            @if($disciplinasTurma->isEmpty())
                 <p class="px-6 py-8 text-center text-gray-500 text-sm">Nenhuma disciplina vinculada.</p>
             @else
                 <div class="divide-y divide-gray-100">
-                    @foreach($turma->disciplinas as $disc)
+                    @foreach($disciplinasTurma as $disc)
                         <div class="px-6 py-3 flex items-center justify-between">
                             <div>
                                 <p class="text-sm font-medium text-gray-800">{{ $disc->nome }}</p>
@@ -88,6 +95,9 @@
                             </div>
                         </div>
                     @endforeach
+                </div>
+                <div class="px-6 py-3 border-t border-gray-100">
+                    {{ $disciplinasTurma->links() }}
                 </div>
             @endif
         </div>

@@ -24,7 +24,7 @@ class MunicipioController extends Controller
             $query->where('ativo', $request->ativo === '1');
         }
 
-        $municipios = $query->orderBy('nome')->paginate(15)->withQueryString();
+        $municipios = $query->orderBy('nome')->paginate(10)->withQueryString();
 
         return view('admin.municipios.index', compact('municipios'));
     }
@@ -44,7 +44,11 @@ class MunicipioController extends Controller
     public function show(Municipio $municipio)
     {
         $municipio->loadCount('escolas');
-        $escolas = $municipio->escolas()->withCount('turmas')->orderBy('nome')->get();
+        $escolas = $municipio->escolas()
+            ->withCount('turmas')
+            ->orderBy('nome')
+            ->paginate(10)
+            ->withQueryString();
 
         return view('admin.municipios.show', compact('municipio', 'escolas'));
     }

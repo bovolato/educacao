@@ -1,12 +1,5 @@
 @php
-    use Illuminate\Support\Facades\Route;
-
     $user = Auth::user();
-    $currentRoute = request()->route()?->getName() ?? '';
-
-    $menuItem = function(string $route, string $label, string $icon, string $permission = null) use ($user, $currentRoute, &$menuItem) {
-        return compact('route', 'label', 'icon', 'permission');
-    };
 @endphp
 
 @php
@@ -121,8 +114,9 @@
         </p>
         @foreach($group['items'] as $item)
             @php
-                $url = Route::has($item['route']) ? route($item['route']) : '#';
-                $isActive = $url !== '#' && (request()->routeIs($item['route']) || request()->routeIs($item['route'] . '.*'));
+                // Uma única resolução de URL e um routeIs (evita Route::has + route() duplicados por item)
+                $url = route($item['route']);
+                $isActive = request()->routeIs($item['route'], $item['route'] . '.*');
             @endphp
             <a href="{{ $url }}"
                class="{{ $isActive

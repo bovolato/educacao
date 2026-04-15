@@ -26,7 +26,7 @@ class EscolaController extends Controller
             $query->where('status', $request->status);
         }
 
-        $escolas = $query->orderBy('nome')->paginate(15)->withQueryString();
+        $escolas = $query->orderBy('nome')->paginate(10)->withQueryString();
 
         return view('admin.escolas.index', compact('escolas'));
     }
@@ -46,11 +46,25 @@ class EscolaController extends Controller
 
     public function show(Escola $escola)
     {
-        $escola->load(['municipio', 'salas', 'professores.pessoa']);
-        $turmas     = $escola->turmas()->with(['serie', 'turno'])->withCount('matriculasAtivas')->get();
+        $escola->load(['municipio', 'salas']);
+
+        $turmas = $escola->turmas()
+            ->with(['serie', 'turno'])
+            ->withCount('matriculasAtivas')
+            ->orderBy('nome')
+            ->paginate(10, ['*'], 'turmas_page')
+            ->withQueryString();
+
+        $professores = $escola->professores()
+            ->with('pessoa')
+            ->where('ativo', true)
+            ->orderBy('id')
+            ->paginate(10, ['*'], 'professores_page')
+            ->withQueryString();
+
         $matriculas = $escola->matriculas()->where('situacao', 'ativa')->count();
 
-        return view('admin.escolas.show', compact('escola', 'turmas', 'matriculas'));
+        return view('admin.escolas.show', compact('escola', 'turmas', 'professores', 'matriculas'));
     }
 
     public function edit(Escola $escola)

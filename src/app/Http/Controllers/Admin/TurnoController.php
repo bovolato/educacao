@@ -13,7 +13,7 @@ class TurnoController extends Controller
     {
         $turnos = Turno::with('municipio')
             ->when($request->filled('busca'), fn($q) => $q->where('nome', 'like', '%' . $request->busca . '%'))
-            ->orderBy('nome')->paginate(20)->withQueryString();
+            ->orderBy('nome')->paginate(10)->withQueryString();
 
         return view('admin.turnos.index', compact('turnos'));
     }

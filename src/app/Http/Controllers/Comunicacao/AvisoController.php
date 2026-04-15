@@ -17,7 +17,7 @@ class AvisoController extends Controller
             ->when($request->filled('busca'), fn($q) => $q->where('titulo', 'like', '%' . $request->busca . '%'))
             ->when($request->filled('tipo'), fn($q) => $q->where('tipo_destino', $request->tipo))
             ->orderByDesc('publicado_em')
-            ->paginate(15)->withQueryString();
+            ->paginate(10)->withQueryString();
 
         return view('avisos.index', compact('avisos'));
     }

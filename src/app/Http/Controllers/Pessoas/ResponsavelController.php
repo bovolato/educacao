@@ -20,7 +20,7 @@ class ResponsavelController extends Controller
                 $q->whereHas('pessoa', fn ($q) => $q->where('nome', 'like', $term));
             })
             ->orderByDesc('id')
-            ->paginate(20)
+            ->paginate(10)
             ->withQueryString();
 
         return view('pessoas.responsaveis.index', compact('responsaveis'));

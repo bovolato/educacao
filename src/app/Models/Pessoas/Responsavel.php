@@ -35,6 +35,10 @@ class Responsavel extends Model
 
     public function getNomeAttribute(): string
     {
-        return $this->pessoa?->nome_exibicao ?? '';
+        if ($this->pessoa) {
+            return $this->pessoa->nome_exibicao;
+        }
+
+        return 'Responsável #'.$this->id;
     }
 }

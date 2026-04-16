@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Pessoas\{Pessoa, Aluno};
+use App\Models\Institucional\Escola;
 use Illuminate\Database\Seeder;
 
 class AlunoSeeder extends Seeder
@@ -20,9 +21,23 @@ class AlunoSeeder extends Seeder
             $pessoas = Pessoa::doesntHave('aluno')->limit(60)->get();
         }
 
+        $cidadesRede = Escola::query()
+            ->where('status', 'ativa')
+            ->whereNotNull('cidade')
+            ->where('cidade', '!=', '')
+            ->distinct()
+            ->pluck('cidade')
+            ->values();
+        $cidadePadrao = $cidadesRede->first() ?? 'Município Exemplo';
+
         foreach ($pessoas as $i => $pessoa) {
+            $cidadeV = $cidadesRede->isNotEmpty()
+                ? $cidadesRede[$i % $cidadesRede->count()]
+                : $cidadePadrao;
+
             Aluno::create([
                 'pessoa_id'       => $pessoa->id,
+                'cidade_vinculo'  => $cidadeV,
                 'ra'              => 'RA' . str_pad($i + 1, 6, '0', STR_PAD_LEFT),
                 'codigo_aluno'    => 'AL' . str_pad($i + 1, 5, '0', STR_PAD_LEFT),
                 'nis'             => rand(10000000000, 99999999999),

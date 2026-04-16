@@ -97,7 +97,7 @@
                     <div class="divide-y divide-gray-100">
                         @foreach($professores as $professor)
                             <div class="px-6 py-3 flex items-center justify-between">
-                                <p class="text-sm font-medium text-gray-800">{{ $professor->pessoa->nome }}</p>
+                                <p class="text-sm font-medium text-gray-800">{{ $professor->nome }}</p>
                                 <a href="{{ route('pessoas.professores.show', $professor) }}" class="text-xs text-indigo-600 hover:underline">Ver</a>
                             </div>
                         @endforeach

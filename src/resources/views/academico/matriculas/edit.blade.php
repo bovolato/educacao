@@ -1,5 +1,5 @@
 <x-sigem-layout title="Editar Matrícula">
-    <x-page-header :title="'Matrícula: ' . $matricula->aluno->pessoa->nome" :back-route="route('academico.matriculas.index')" back-label="Voltar"/>
+    <x-page-header :title="'Matrícula: ' . $matricula->aluno->nome" :back-route="route('academico.matriculas.index')" back-label="Voltar"/>
     <form method="POST" action="{{ route('academico.matriculas.update', $matricula) }}">
         @csrf @method('PATCH')
         <x-form-card title="Atualizar Matrícula">
@@ -7,7 +7,7 @@
                 <div class="md:col-span-2">
                     <div class="p-4 bg-gray-50 rounded-xl border border-gray-200">
                         <p class="text-xs text-gray-500 uppercase mb-1">Aluno</p>
-                        <p class="font-semibold text-gray-800">{{ $matricula->aluno->pessoa->nome }}</p>
+                        <p class="font-semibold text-gray-800">{{ $matricula->aluno->nome }}</p>
                         <p class="text-sm text-gray-500">RA: {{ $matricula->aluno->ra ?? '—' }} · Matrícula Nº {{ $matricula->numero_matricula }}</p>
                     </div>
                 </div>

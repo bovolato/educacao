@@ -1,6 +1,6 @@
-<x-sigem-layout :title="'Vincular Turmas — ' . $professor->pessoa->nome">
+<x-sigem-layout :title="'Vincular Turmas — ' . $professor->nome">
 
-    <x-page-header :title="'Vincular Turmas'" :subtitle="$professor->pessoa->nome . ' — ' . ($professor->escola?->nome ?? '')"
+    <x-page-header :title="'Vincular Turmas'" :subtitle="$professor->nome . ' — ' . ($professor->escola?->nome ?? '')"
         :back-route="route('pessoas.professores.show', $professor)" back-label="Voltar para Ficha" />
 
     <form method="POST" action="{{ route('pessoas.professores.salvar-vinculo-turmas', $professor) }}"

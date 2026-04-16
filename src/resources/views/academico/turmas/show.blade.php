@@ -36,7 +36,7 @@
                         <div class="px-6 py-2.5 flex items-center justify-between">
                             <div class="flex items-center gap-3">
                                 <span class="text-xs text-gray-400 w-5">{{ $matriculasTurma->firstItem() + $i }}.</span>
-                                <p class="text-sm text-gray-800">{{ $matricula->aluno->pessoa->nome }}</p>
+                                <p class="text-sm text-gray-800">{{ $matricula->aluno->nome }}</p>
                             </div>
                             <a href="{{ route('pessoas.alunos.show', $matricula->aluno) }}" class="text-xs text-indigo-600 hover:underline">ver</a>
                         </div>
@@ -62,7 +62,7 @@
                         @endphp
                         <div class="px-6 py-3 flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-medium text-gray-800">{{ $professor->pessoa->nome }}</p>
+                                <p class="text-sm font-medium text-gray-800">{{ $professor->nome }}</p>
                                 <p class="text-xs text-gray-500 mt-0.5">
                                     {{ $disciplina?->nome ?? '—' }}
                                     @if($professor->pivot->titular) · <span class="text-indigo-600 font-medium">Titular</span> @endif

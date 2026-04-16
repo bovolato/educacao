@@ -15,7 +15,7 @@ class Aluno extends Model
     protected $table = 'alunos';
 
     protected $fillable = [
-        'pessoa_id', 'ra', 'codigo_aluno', 'nis', 'sus',
+        'pessoa_id', 'cidade_vinculo', 'ra', 'codigo_aluno', 'nis', 'sus',
         'necessidades_especiais', 'descricao_necessidades',
         'observacoes_saude', 'usa_transporte', 'ativo',
     ];
@@ -67,7 +67,11 @@ class Aluno extends Model
 
     public function getNomeAttribute(): string
     {
-        return $this->pessoa?->nome_exibicao ?? '';
+        if ($this->pessoa) {
+            return $this->pessoa->nome_exibicao;
+        }
+
+        return 'Aluno #'.$this->id;
     }
 
     public function scopeAtivo($query)

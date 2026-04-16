@@ -7,14 +7,23 @@
         </x-slot>
     </x-page-header>
 
-    <form method="GET" class="flex flex-wrap gap-3 mb-5">
+    <form method="GET" class="flex flex-wrap gap-3 mb-5" x-data="professoresFiltro()">
         <input type="text" name="busca" value="{{ request('busca') }}" placeholder="Buscar por nome..."
             class="flex-1 min-w-[200px] px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-        <select name="escola" class="px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-            <option value="">Todas as escolas</option>
-            @foreach($escolas as $escola)
-                <option value="{{ $escola->id }}" @selected(request('escola') == $escola->id)>{{ $escola->nome }}</option>
+        <select name="cidade" x-model="cidadeSelecionada" @change="onCidadeChange()"
+            class="min-w-[160px] px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <option value="">Todas as cidades</option>
+            @foreach($cidades as $cidade)
+                <option value="{{ $cidade }}">{{ $cidade }}</option>
             @endforeach
+        </select>
+        <select name="escola" x-model="escolaId"
+            class="min-w-[200px] px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+            :disabled="cidadeSelecionada && escolasFiltradas.length === 0">
+            <option value="">{{ $cidades->isEmpty() ? 'Cadastre cidades nas escolas' : 'Todas as escolas' }}</option>
+            <template x-for="e in escolasFiltradas" :key="e.id">
+                <option :value="String(e.id)" x-text="e.nome"></option>
+            </template>
         </select>
         <select name="ativo" class="px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
             <option value="">Todos</option>
@@ -22,10 +31,41 @@
             <option value="0" @selected(request('ativo') === '0')>Inativos</option>
         </select>
         <button type="submit" class="px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors">Filtrar</button>
-        @if(request()->hasAny(['busca', 'escola', 'ativo']))
+        @if(request()->hasAny(['busca', 'cidade', 'escola', 'ativo']))
             <a href="{{ route('pessoas.professores.index') }}" class="px-5 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-200 transition-colors">Limpar</a>
         @endif
     </form>
+
+    <script>
+        function professoresFiltro() {
+            const escolasAll = @json($escolasJson);
+            return {
+                escolasAll,
+                cidadeSelecionada: @json(request('cidade', '')),
+                escolaId: @json((string) (request('escola') ?? '')),
+                get escolasFiltradas() {
+                    if (!this.cidadeSelecionada) {
+                        return escolasAll;
+                    }
+                    return escolasAll.filter(e => (e.cidade || '') === this.cidadeSelecionada);
+                },
+                onCidadeChange() {
+                    const filtradas = this.escolasFiltradas;
+                    if (this.escolaId && !filtradas.some(e => String(e.id) === String(this.escolaId))) {
+                        this.escolaId = '';
+                    }
+                },
+                init() {
+                    if (this.escolaId) {
+                        const found = escolasAll.find(e => String(e.id) === String(this.escolaId));
+                        if (found && found.cidade) {
+                            this.cidadeSelecionada = found.cidade;
+                        }
+                    }
+                },
+            };
+        }
+    </script>
 
     <x-data-table>
         <x-slot name="head">
@@ -42,9 +82,9 @@
                 <td class="px-5 py-3.5">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-semibold text-sm shrink-0">
-                            {{ mb_substr($professor->pessoa->nome, 0, 1) }}
+                            {{ mb_substr($professor->nome !== '' ? $professor->nome : '?', 0, 1) }}
                         </div>
-                        <p class="font-medium text-gray-800 text-sm">{{ $professor->pessoa->nome }}</p>
+                        <p class="font-medium text-gray-800 text-sm">{{ $professor->nome }}</p>
                     </div>
                 </td>
                 <td class="px-5 py-3.5 text-sm text-gray-600">{{ $professor->escola?->nome ?? '—' }}</td>

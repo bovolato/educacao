@@ -26,9 +26,20 @@ class EscolaController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->filled('cidade')) {
+            $query->where('cidade', $request->cidade);
+        }
+
         $escolas = $query->orderBy('nome')->paginate(10)->withQueryString();
 
-        return view('admin.escolas.index', compact('escolas'));
+        $cidades = Escola::query()
+            ->whereNotNull('cidade')
+            ->where('cidade', '!=', '')
+            ->distinct()
+            ->orderBy('cidade')
+            ->pluck('cidade');
+
+        return view('admin.escolas.index', compact('escolas', 'cidades'));
     }
 
     public function create()

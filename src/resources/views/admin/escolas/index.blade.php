@@ -15,6 +15,12 @@
                 placeholder="Buscar por nome, código ou INEP..."
                 class="w-full px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
         </div>
+        <select name="cidade" class="min-w-[180px] px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <option value="">Todas as cidades</option>
+            @foreach($cidades as $cidade)
+                <option value="{{ $cidade }}" @selected(request('cidade') === $cidade)>{{ $cidade }}</option>
+            @endforeach
+        </select>
         <select name="status" class="px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
             <option value="">Todos os status</option>
             <option value="ativa" @selected(request('status') === 'ativa')>Ativa</option>
@@ -24,7 +30,7 @@
         <button type="submit" class="px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors">
             Filtrar
         </button>
-        @if(request()->hasAny(['busca', 'status']))
+        @if(request()->hasAny(['busca', 'cidade', 'status']))
             <a href="{{ route('admin.escolas.index') }}" class="px-5 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-200 transition-colors">
                 Limpar
             </a>

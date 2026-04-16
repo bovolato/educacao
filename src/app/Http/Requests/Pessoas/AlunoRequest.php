@@ -34,7 +34,8 @@ class AlunoRequest extends FormRequest
             'cidade'          => 'nullable|string|max:100',
             'uf'              => 'nullable|string|size:2',
             'cep'             => 'nullable|string|max:9',
-            // Aluno
+            // Aluno — município da rede (filtros, matrícula)
+            'cidade_vinculo' => 'required|string|max:120',
             'ra'              => 'nullable|string|max:30',
             'codigo_aluno'    => 'nullable|string|max:30',
             'nis'             => 'nullable|string|max:20',

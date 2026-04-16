@@ -5,13 +5,22 @@
         @csrf
         <x-form-card title="Dados da Turma">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <x-form-field label="Escola" name="escola_id" required>
-                    <select name="escola_id" x-model="escolaId" @change="carregarSalas()"
-                        class="w-full px-4 py-2.5 rounded-xl border @error('escola_id') border-red-400 @else border-gray-300 @enderror focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
-                        <option value="">Selecione...</option>
-                        @foreach($escolas as $e)
-                            <option value="{{ $e->id }}" @selected(old('escola_id', request('escola_id')) == $e->id)>{{ $e->nome }}</option>
+                <x-form-field label="Cidade" name="cidade_filtro" hint="Escolha primeiro a cidade; em seguida aparecerão apenas as escolas daquela cidade.">
+                    <select id="cidade_filtro" x-model="cidadeSelecionada" @change="onCidadeChange()"
+                        class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                        <option value="">Selecione a cidade...</option>
+                        @foreach($cidades as $cidade)
+                            <option value="{{ $cidade }}">{{ $cidade }}</option>
                         @endforeach
+                    </select>
+                </x-form-field>
+                <x-form-field label="Escola" name="escola_id" required>
+                    <select name="escola_id" x-model="escolaId" @change="carregarSalas()" :disabled="!cidadeSelecionada && !escolaId"
+                        class="w-full px-4 py-2.5 rounded-xl border @error('escola_id') border-red-400 @else border-gray-300 @enderror focus:ring-2 focus:ring-indigo-500 outline-none text-sm disabled:bg-gray-100 disabled:cursor-not-allowed">
+                        <option value="">{{ $cidades->isEmpty() ? 'Cadastre cidades nas escolas' : 'Selecione a escola...' }}</option>
+                        <template x-for="e in escolasFiltradas" :key="e.id">
+                            <option :value="String(e.id)" x-text="e.nome"></option>
+                        </template>
                     </select>
                 </x-form-field>
                 <x-form-field label="Ano Letivo" name="ano_letivo_id" required>
@@ -82,24 +91,65 @@
         </div>
     </form>
 
+    @php
+        $escolasJson = $escolas->map(fn ($e) => ['id' => (int) $e->id, 'nome' => $e->nome, 'cidade' => $e->cidade])->values();
+    @endphp
     <script>
         function turmaForm() {
+            const escolasAll = @json($escolasJson);
             return {
-                escolaId: '{{ old("escola_id", request("escola_id")) }}',
-                salaId: '{{ old("sala_id") }}',
+                escolasAll,
+                cidadeSelecionada: '',
+                escolaId: @json((string) (old('escola_id', request('escola_id')) ?? '')),
+                salaId: @json((string) (old('sala_id') ?? '')),
                 salas: [],
                 salasCarregadas: false,
-                init() {
-                    if (this.escolaId) this.carregarSalas();
+                get escolasFiltradas() {
+                    if (this.cidadeSelecionada) {
+                        const base = this.escolasAll.filter(e => (e.cidade || '') === this.cidadeSelecionada);
+                        if (this.escolaId && !base.some(e => String(e.id) === String(this.escolaId))) {
+                            const extra = this.escolasAll.find(e => String(e.id) === String(this.escolaId));
+                            return extra ? [...base, extra] : base;
+                        }
+                        return base;
+                    }
+                    if (this.escolaId) {
+                        const only = this.escolasAll.find(e => String(e.id) === String(this.escolaId));
+                        return only ? [only] : [];
+                    }
+                    return [];
                 },
-                async carregarSalas() {
+                onCidadeChange() {
+                    this.escolaId = '';
                     this.salas = [];
                     this.salaId = '';
                     this.salasCarregadas = false;
-                    if (!this.escolaId) return;
+                },
+                init() {
+                    if (this.escolaId) {
+                        const found = escolasAll.find(e => String(e.id) === String(this.escolaId));
+                        if (found && found.cidade) {
+                            this.cidadeSelecionada = found.cidade;
+                        }
+                    }
+                    if (this.escolaId) this.carregarSalas();
+                },
+                async carregarSalas() {
+                    const salaAnterior = this.salaId;
+                    this.salas = [];
+                    this.salasCarregadas = false;
+                    if (!this.escolaId) {
+                        this.salaId = '';
+                        return;
+                    }
                     try {
                         const resp = await fetch(`/api/escolas/${this.escolaId}/salas`);
                         this.salas = await resp.json();
+                        if (salaAnterior && this.salas.some(s => String(s.id) === String(salaAnterior))) {
+                            this.salaId = salaAnterior;
+                        } else {
+                            this.salaId = '';
+                        }
                     } catch (e) { console.error(e); }
                     this.salasCarregadas = true;
                 }

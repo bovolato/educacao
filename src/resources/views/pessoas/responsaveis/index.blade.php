@@ -27,8 +27,8 @@
         @forelse($responsaveis as $resp)
             <tr class="hover:bg-gray-50">
                 <td class="px-5 py-3.5">
-                    <p class="font-medium text-gray-800 text-sm">{{ $resp->pessoa->nome }}</p>
-                    <p class="text-xs text-gray-500">CPF: {{ $resp->pessoa->cpf ?? '—' }}</p>
+                    <p class="font-medium text-gray-800 text-sm">{{ $resp->nome }}</p>
+                    <p class="text-xs text-gray-500">CPF: {{ $resp->pessoa?->cpf ?? '—' }}</p>
                 </td>
                 <td class="px-5 py-3.5 text-sm text-gray-600">{{ $resp->tipo_responsavel }}</td>
                 <td class="px-5 py-3.5 text-center">

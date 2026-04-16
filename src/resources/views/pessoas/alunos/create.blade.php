@@ -50,6 +50,17 @@
 
         <x-form-card title="Dados do Aluno">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="md:col-span-3">
+                    <x-form-field label="Cidade (rede municipal)" name="cidade_vinculo" required hint="Município ao qual o aluno está vinculado na rede; usado em matrículas e filtros.">
+                        <select name="cidade_vinculo"
+                            class="w-full px-4 py-2.5 rounded-xl border @error('cidade_vinculo') border-red-400 @else border-gray-300 @enderror focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                            <option value="">Selecione a cidade...</option>
+                            @foreach($cidades as $cidade)
+                                <option value="{{ $cidade }}" @selected(old('cidade_vinculo') == $cidade)>{{ $cidade }}</option>
+                            @endforeach
+                        </select>
+                    </x-form-field>
+                </div>
                 <x-form-field label="RA (Registro do Aluno)" name="ra">
                     <input type="text" name="ra" value="{{ old('ra') }}"
                         class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">

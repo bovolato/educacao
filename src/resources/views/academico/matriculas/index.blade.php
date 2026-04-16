@@ -7,20 +7,31 @@
         </x-slot>
     </x-page-header>
 
-    <form method="GET" class="flex flex-wrap gap-3 mb-5">
+    <form method="GET" class="flex flex-wrap gap-3 mb-5" x-data="matriculasFiltro()">
         <input type="text" name="busca" value="{{ request('busca') }}" placeholder="Buscar aluno..."
             class="flex-1 min-w-[200px] px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-        <select name="escola" class="px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-            <option value="">Todas as escolas</option>
-            @foreach($escolas as $e)
-                <option value="{{ $e->id }}" @selected(request('escola') == $e->id)>{{ $e->nome }}</option>
+        <select name="cidade" x-model="cidadeSelecionada" @change="onCidadeChange()"
+            class="min-w-[150px] px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <option value="">Todas as cidades</option>
+            @foreach($cidades as $cidade)
+                <option value="{{ $cidade }}">{{ $cidade }}</option>
             @endforeach
         </select>
-        <select name="turma" class="px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+        <select name="escola" x-model="escolaId" @change="onEscolaChange()"
+            class="min-w-[180px] px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+            :disabled="cidadeSelecionada && escolasFiltradas.length === 0">
+            <option value="">{{ $cidades->isEmpty() ? 'Cadastre cidades nas escolas' : 'Todas as escolas' }}</option>
+            <template x-for="e in escolasFiltradas" :key="e.id">
+                <option :value="String(e.id)" x-text="e.nome"></option>
+            </template>
+        </select>
+        <select name="turma" x-model="turmaId"
+            class="min-w-[200px] px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+            :disabled="(cidadeSelecionada || escolaId) && turmasFiltradas.length === 0">
             <option value="">Todas as turmas</option>
-            @foreach($turmas as $t)
-                <option value="{{ $t->id }}" @selected(request('turma') == $t->id)>{{ $t->nome }} ({{ $t->serie->nome ?? '' }})</option>
-            @endforeach
+            <template x-for="t in turmasFiltradas" :key="t.id">
+                <option :value="String(t.id)" x-text="(t.nome || '') + (t.serie_nome ? ' (' + t.serie_nome + ')' : '')"></option>
+            </template>
         </select>
         <select name="situacao" class="px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
             <option value="">Todas as situações</option>
@@ -31,10 +42,71 @@
             <option value="cancelada" @selected(request('situacao') === 'cancelada')>Cancelada</option>
         </select>
         <button type="submit" class="px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors">Filtrar</button>
-        @if(request()->hasAny(['busca', 'turma', 'situacao', 'escola']))
+        @if(request()->hasAny(['busca', 'cidade', 'turma', 'situacao', 'escola']))
             <a href="{{ route('academico.matriculas.index') }}" class="px-5 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-200 transition-colors">Limpar</a>
         @endif
     </form>
+
+    <script>
+        function matriculasFiltro() {
+            const escolasAll = @json($escolasJson);
+            const turmasAll = @json($turmasJson);
+            return {
+                escolasAll,
+                turmasAll,
+                cidadeSelecionada: @json(request('cidade', '')),
+                escolaId: @json((string) (request('escola') ?? '')),
+                turmaId: @json((string) (request('turma') ?? '')),
+                get escolasFiltradas() {
+                    if (!this.cidadeSelecionada) {
+                        return escolasAll;
+                    }
+                    return escolasAll.filter(e => (e.cidade || '') === this.cidadeSelecionada);
+                },
+                get turmasFiltradas() {
+                    if (this.escolaId) {
+                        return this.turmasAll.filter(t => String(t.escola_id) === String(this.escolaId));
+                    }
+                    if (this.cidadeSelecionada) {
+                        return this.turmasAll.filter(t => (t.cidade || '') === this.cidadeSelecionada);
+                    }
+                    return this.turmasAll;
+                },
+                onCidadeChange() {
+                    const ef = this.escolasFiltradas;
+                    if (this.escolaId && !ef.some(e => String(e.id) === String(this.escolaId))) {
+                        this.escolaId = '';
+                    }
+                    this.syncTurma();
+                },
+                onEscolaChange() {
+                    this.syncTurma();
+                },
+                syncTurma() {
+                    const tf = this.turmasFiltradas;
+                    if (this.turmaId && !tf.some(t => String(t.id) === String(this.turmaId))) {
+                        this.turmaId = '';
+                    }
+                },
+                init() {
+                    if (this.turmaId) {
+                        const t = turmasAll.find(x => String(x.id) === String(this.turmaId));
+                        if (t) {
+                            if (t.cidade) {
+                                this.cidadeSelecionada = t.cidade;
+                            }
+                            this.escolaId = String(t.escola_id);
+                        }
+                    } else if (this.escolaId) {
+                        const found = escolasAll.find(e => String(e.id) === String(this.escolaId));
+                        if (found && found.cidade) {
+                            this.cidadeSelecionada = found.cidade;
+                        }
+                    }
+                },
+            };
+        }
+    </script>
 
     <x-data-table>
         <x-slot name="head">
@@ -52,7 +124,7 @@
 
         @forelse($matriculas as $m)
             <tr class="hover:bg-gray-50">
-                <td class="px-5 py-3.5 font-medium text-gray-800 text-sm">{{ $m->aluno->pessoa->nome }}</td>
+                <td class="px-5 py-3.5 font-medium text-gray-800 text-sm">{{ $m->aluno->nome }}</td>
                 <td class="px-5 py-3.5">
                     <p class="text-sm text-gray-700">{{ $m->turma->nome ?? '—' }}</p>
                     <p class="text-xs text-gray-500">{{ $m->turma->serie->nome ?? '' }}</p>

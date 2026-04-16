@@ -63,18 +63,30 @@ class ResponsavelController extends Controller
 
     public function show(Responsavel $responsavel)
     {
-        $responsavel->load(['pessoa.contatos', 'alunos.pessoa']);
+        $responsavel->loadMissing(['pessoa.contatos', 'alunos.pessoa']);
         return view('pessoas.responsaveis.show', compact('responsavel'));
     }
 
     public function edit(Responsavel $responsavel)
     {
-        $responsavel->load(['pessoa.contatos']);
+        $responsavel->loadMissing(['pessoa.contatos']);
+        if (! $responsavel->pessoa) {
+            return redirect()
+                ->route('pessoas.responsaveis.index')
+                ->with('error', 'Este responsável não possui cadastro de pessoa vinculado. Corrija os dados no banco ou cadastre novamente.');
+        }
         return view('pessoas.responsaveis.edit', compact('responsavel'));
     }
 
     public function update(ResponsavelRequest $request, Responsavel $responsavel)
     {
+        $responsavel->loadMissing('pessoa');
+        if (! $responsavel->pessoa) {
+            return redirect()
+                ->route('pessoas.responsaveis.index')
+                ->with('error', 'Não é possível atualizar: cadastro de pessoa ausente para este responsável.');
+        }
+
         DB::transaction(function () use ($request, $responsavel) {
             $responsavel->pessoa->update([
                 'nome'            => $request->nome,

@@ -17,36 +17,72 @@ class ProfessorController extends Controller
         $professores = Professor::query()
             ->with([
                 'pessoa:id,nome',
-                'escola:id,nome',
+                'escola:id,nome,cidade',
             ])
             ->when($request->filled('busca'), function ($q) use ($request) {
                 $term = '%'.$request->busca.'%';
                 $q->whereHas('pessoa', fn ($q) => $q->where('nome', 'like', $term));
             })
             ->when($request->filled('escola'), fn ($q) => $q->where('escola_id', $request->escola))
+            ->when(
+                $request->filled('cidade') && ! $request->filled('escola'),
+                function ($q) use ($request) {
+                    $c = $request->cidade;
+                    $q->where(function ($q2) use ($c) {
+                        $q2->where('cidade_vinculo', $c)
+                            ->orWhereHas('escola', fn ($e) => $e->where('cidade', $c));
+                    });
+                }
+            )
             ->when($request->filled('ativo'), fn ($q) => $q->where('ativo', $request->ativo === '1'))
             ->when(! $request->filled('busca') && ! $request->filled('ativo'), fn ($q) => $q->where('ativo', true))
             ->orderByDesc('id')
             ->paginate(10)
             ->withQueryString();
 
-        $escolas = Escola::query()
+        $cidades = Escola::query()
+            ->where('status', 'ativa')
+            ->whereNotNull('cidade')
+            ->where('cidade', '!=', '')
+            ->distinct()
+            ->orderBy('cidade')
+            ->pluck('cidade');
+
+        $escolasJson = Escola::query()
             ->where('status', 'ativa')
             ->orderBy('nome')
-            ->get(['id', 'nome']);
+            ->get(['id', 'nome', 'cidade'])
+            ->map(fn ($e) => ['id' => (int) $e->id, 'nome' => $e->nome, 'cidade' => $e->cidade])
+            ->values();
 
-        return view('pessoas.professores.index', compact('professores', 'escolas'));
+        return view('pessoas.professores.index', compact('professores', 'cidades', 'escolasJson'));
     }
 
     public function create()
     {
-        $escolas = Escola::where('status', 'ativa')->orderBy('nome')->get();
-        return view('pessoas.professores.create', compact('escolas'));
+        $cidades = Escola::query()
+            ->where('status', 'ativa')
+            ->whereNotNull('cidade')
+            ->where('cidade', '!=', '')
+            ->distinct()
+            ->orderBy('cidade')
+            ->pluck('cidade');
+
+        $escolasJson = Escola::query()
+            ->where('status', 'ativa')
+            ->orderBy('nome')
+            ->get(['id', 'nome', 'cidade'])
+            ->map(fn ($e) => ['id' => (int) $e->id, 'nome' => $e->nome, 'cidade' => $e->cidade])
+            ->values();
+
+        return view('pessoas.professores.create', compact('cidades', 'escolasJson'));
     }
 
     public function store(ProfessorRequest $request)
     {
-        DB::transaction(function () use ($request) {
+        $escola = Escola::findOrFail($request->escola_id);
+
+        DB::transaction(function () use ($request, $escola) {
             $pessoa = Pessoa::create([
                 'nome'            => $request->nome,
                 'cpf'             => $request->cpf,
@@ -65,6 +101,7 @@ class ProfessorController extends Controller
             Professor::create([
                 'pessoa_id'             => $pessoa->id,
                 'escola_id'             => $request->escola_id,
+                'cidade_vinculo'        => $escola->cidade,
                 'matricula_funcional'   => $request->matricula_funcional,
                 'formacao'              => $request->formacao,
                 'registro_profissional' => $request->registro_profissional,
@@ -78,20 +115,48 @@ class ProfessorController extends Controller
 
     public function show(Professor $professor)
     {
-        $professor->load(['pessoa.contatos', 'escola', 'turmas.serie', 'turmas.turno']);
+        $professor->loadMissing(['pessoa.contatos', 'escola', 'turmas.serie', 'turmas.turno']);
         return view('pessoas.professores.show', compact('professor'));
     }
 
     public function edit(Professor $professor)
     {
-        $professor->load(['pessoa.contatos']);
-        $escolas = Escola::where('status', 'ativa')->orderBy('nome')->get();
-        return view('pessoas.professores.edit', compact('professor', 'escolas'));
+        $professor->loadMissing(['pessoa.contatos']);
+        if (! $professor->pessoa) {
+            return redirect()
+                ->route('pessoas.professores.index')
+                ->with('error', 'Este professor não possui cadastro de pessoa vinculado. Corrija os dados no banco ou cadastre novamente.');
+        }
+        $cidades = Escola::query()
+            ->where('status', 'ativa')
+            ->whereNotNull('cidade')
+            ->where('cidade', '!=', '')
+            ->distinct()
+            ->orderBy('cidade')
+            ->pluck('cidade');
+
+        $escolasJson = Escola::query()
+            ->where('status', 'ativa')
+            ->orderBy('nome')
+            ->get(['id', 'nome', 'cidade'])
+            ->map(fn ($e) => ['id' => (int) $e->id, 'nome' => $e->nome, 'cidade' => $e->cidade])
+            ->values();
+
+        return view('pessoas.professores.edit', compact('professor', 'cidades', 'escolasJson'));
     }
 
     public function update(ProfessorRequest $request, Professor $professor)
     {
-        DB::transaction(function () use ($request, $professor) {
+        $professor->loadMissing('pessoa');
+        if (! $professor->pessoa) {
+            return redirect()
+                ->route('pessoas.professores.index')
+                ->with('error', 'Não é possível atualizar: cadastro de pessoa ausente para este professor.');
+        }
+
+        $escola = Escola::findOrFail($request->escola_id);
+
+        DB::transaction(function () use ($request, $professor, $escola) {
             $professor->pessoa->update([
                 'nome'            => $request->nome,
                 'cpf'             => $request->cpf,
@@ -101,6 +166,7 @@ class ProfessorController extends Controller
 
             $professor->update([
                 'escola_id'             => $request->escola_id,
+                'cidade_vinculo'        => $escola->cidade,
                 'matricula_funcional'   => $request->matricula_funcional,
                 'formacao'              => $request->formacao,
                 'registro_profissional' => $request->registro_profissional,

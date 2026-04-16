@@ -87,6 +87,7 @@ class ProfessorSeeder extends Seeder
             $professor = Professor::create([
                 'pessoa_id'             => $pessoa->id,
                 'escola_id'             => $escolaId,
+                'cidade_vinculo'        => $escola?->cidade,
                 'matricula_funcional'   => 'PROF' . str_pad($i + 1, 4, '0', STR_PAD_LEFT),
                 'formacao'              => $this->formacoes[$i % count($this->formacoes)],
                 'registro_profissional' => 'REG' . rand(10000, 99999),

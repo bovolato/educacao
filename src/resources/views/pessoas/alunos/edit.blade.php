@@ -1,46 +1,47 @@
 <x-sigem-layout title="Editar Aluno">
 
-    <x-page-header :title="'Editar: ' . $aluno->pessoa->nome" :back-route="route('pessoas.alunos.index')" back-label="Voltar"/>
+    <x-page-header :title="'Editar: ' . $aluno->nome" :back-route="route('pessoas.alunos.index')" back-label="Voltar"/>
 
     <form method="POST" action="{{ route('pessoas.alunos.update', $aluno) }}">
         @csrf @method('PATCH')
 
         @php
-            $contatoCelular = $aluno->pessoa->contatos->firstWhere('tipo', 'celular');
-            $contatoEmail   = $aluno->pessoa->contatos->firstWhere('tipo', 'email');
-            $endereco       = $aluno->pessoa->enderecos->firstWhere('principal', true) ?? $aluno->pessoa->enderecos->first();
+            $pessoaAl = $aluno->pessoa;
+            $contatoCelular = $pessoaAl ? $pessoaAl->contatos->firstWhere('tipo', 'celular') : null;
+            $contatoEmail   = $pessoaAl ? $pessoaAl->contatos->firstWhere('tipo', 'email') : null;
+            $endereco       = $pessoaAl ? ($pessoaAl->enderecos->firstWhere('principal', true) ?? $pessoaAl->enderecos->first()) : null;
         @endphp
 
         <x-form-card title="Dados Pessoais">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div class="md:col-span-2">
                     <x-form-field label="Nome Completo" name="nome" required>
-                        <input type="text" name="nome" value="{{ old('nome', $aluno->pessoa->nome) }}"
+                        <input type="text" name="nome" value="{{ old('nome', $pessoaAl?->nome) }}"
                             class="w-full px-4 py-2.5 rounded-xl border @error('nome') border-red-400 @else border-gray-300 @enderror focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
                     </x-form-field>
                 </div>
                 <x-form-field label="CPF" name="cpf">
-                    <input type="text" name="cpf" value="{{ old('cpf', $aluno->pessoa->cpf) }}"
+                    <input type="text" name="cpf" value="{{ old('cpf', $pessoaAl?->cpf) }}"
                         class="w-full px-4 py-2.5 rounded-xl border @error('cpf') border-red-400 @else border-gray-300 @enderror focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
                 </x-form-field>
                 <x-form-field label="Data de Nascimento" name="data_nascimento">
-                    <input type="date" name="data_nascimento" value="{{ old('data_nascimento', $aluno->pessoa->data_nascimento?->format('Y-m-d')) }}"
+                    <input type="date" name="data_nascimento" value="{{ old('data_nascimento', $pessoaAl?->data_nascimento?->format('Y-m-d')) }}"
                         class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
                 </x-form-field>
                 <x-form-field label="Sexo" name="sexo">
                     <select name="sexo" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
                         <option value="">Selecione...</option>
-                        <option value="M" @selected(old('sexo', $aluno->pessoa->sexo) === 'M')>Masculino</option>
-                        <option value="F" @selected(old('sexo', $aluno->pessoa->sexo) === 'F')>Feminino</option>
-                        <option value="O" @selected(old('sexo', $aluno->pessoa->sexo) === 'O')>Outro</option>
+                        <option value="M" @selected(old('sexo', $pessoaAl?->sexo) === 'M')>Masculino</option>
+                        <option value="F" @selected(old('sexo', $pessoaAl?->sexo) === 'F')>Feminino</option>
+                        <option value="O" @selected(old('sexo', $pessoaAl?->sexo) === 'O')>Outro</option>
                     </select>
                 </x-form-field>
                 <x-form-field label="Nome da Mãe" name="nome_mae">
-                    <input type="text" name="nome_mae" value="{{ old('nome_mae', $aluno->pessoa->nome_mae) }}"
+                    <input type="text" name="nome_mae" value="{{ old('nome_mae', $pessoaAl?->nome_mae) }}"
                         class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
                 </x-form-field>
                 <x-form-field label="Nome do Pai" name="nome_pai">
-                    <input type="text" name="nome_pai" value="{{ old('nome_pai', $aluno->pessoa->nome_pai) }}"
+                    <input type="text" name="nome_pai" value="{{ old('nome_pai', $pessoaAl?->nome_pai) }}"
                         class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
                 </x-form-field>
             </div>
@@ -48,6 +49,17 @@
 
         <x-form-card title="Dados do Aluno">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="md:col-span-3">
+                    <x-form-field label="Cidade (rede municipal)" name="cidade_vinculo" required hint="Município ao qual o aluno está vinculado na rede; usado em matrículas e filtros.">
+                        <select name="cidade_vinculo"
+                            class="w-full px-4 py-2.5 rounded-xl border @error('cidade_vinculo') border-red-400 @else border-gray-300 @enderror focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                            <option value="">Selecione a cidade...</option>
+                            @foreach($cidades as $cidade)
+                                <option value="{{ $cidade }}" @selected(old('cidade_vinculo', $aluno->cidade_vinculo) == $cidade)>{{ $cidade }}</option>
+                            @endforeach
+                        </select>
+                    </x-form-field>
+                </div>
                 <x-form-field label="RA" name="ra">
                     <input type="text" name="ra" value="{{ old('ra', $aluno->ra) }}"
                         class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">

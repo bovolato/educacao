@@ -37,17 +37,34 @@ class AlunoController extends Controller
                     $q->where('ativo', false);
                 }
             })
+            ->when($request->filled('cidade'), fn ($q) => $q->where('cidade_vinculo', $request->cidade))
             ->when(! $request->filled('busca'), fn ($q) => $q->where('ativo', true))
             ->orderByDesc('id')
             ->paginate(10)
             ->withQueryString();
 
-        return view('pessoas.alunos.index', compact('alunos'));
+        $cidades = Escola::query()
+            ->where('status', 'ativa')
+            ->whereNotNull('cidade')
+            ->where('cidade', '!=', '')
+            ->distinct()
+            ->orderBy('cidade')
+            ->pluck('cidade');
+
+        return view('pessoas.alunos.index', compact('alunos', 'cidades'));
     }
 
     public function create()
     {
-        return view('pessoas.alunos.create');
+        $cidades = Escola::query()
+            ->where('status', 'ativa')
+            ->whereNotNull('cidade')
+            ->where('cidade', '!=', '')
+            ->distinct()
+            ->orderBy('cidade')
+            ->pluck('cidade');
+
+        return view('pessoas.alunos.create', compact('cidades'));
     }
 
     public function store(AlunoRequest $request)
@@ -100,6 +117,7 @@ class AlunoController extends Controller
 
             Aluno::create([
                 'pessoa_id'             => $pessoa->id,
+                'cidade_vinculo'        => $request->cidade_vinculo,
                 'ra'                    => $request->ra,
                 'codigo_aluno'          => $request->codigo_aluno,
                 'nis'                   => $request->nis,
@@ -115,7 +133,7 @@ class AlunoController extends Controller
 
     public function show(Aluno $aluno)
     {
-        $aluno->load([
+        $aluno->loadMissing([
             'pessoa.contatos',
             'pessoa.enderecos',
             'responsaveis.pessoa',
@@ -129,12 +147,32 @@ class AlunoController extends Controller
 
     public function edit(Aluno $aluno)
     {
-        $aluno->load(['pessoa.contatos', 'pessoa.enderecos']);
-        return view('pessoas.alunos.edit', compact('aluno'));
+        $aluno->loadMissing(['pessoa.contatos', 'pessoa.enderecos']);
+        if (! $aluno->pessoa) {
+            return redirect()
+                ->route('pessoas.alunos.index')
+                ->with('error', 'Este aluno não possui cadastro de pessoa vinculado. Corrija os dados no banco ou cadastre novamente.');
+        }
+        $cidades = Escola::query()
+            ->where('status', 'ativa')
+            ->whereNotNull('cidade')
+            ->where('cidade', '!=', '')
+            ->distinct()
+            ->orderBy('cidade')
+            ->pluck('cidade');
+
+        return view('pessoas.alunos.edit', compact('aluno', 'cidades'));
     }
 
     public function update(AlunoRequest $request, Aluno $aluno)
     {
+        $aluno->loadMissing('pessoa');
+        if (! $aluno->pessoa) {
+            return redirect()
+                ->route('pessoas.alunos.index')
+                ->with('error', 'Não é possível atualizar: cadastro de pessoa ausente para este aluno.');
+        }
+
         DB::transaction(function () use ($request, $aluno) {
             $aluno->pessoa->update([
                 'nome'            => $request->nome,
@@ -148,6 +186,7 @@ class AlunoController extends Controller
             ]);
 
             $aluno->update([
+                'cidade_vinculo'        => $request->cidade_vinculo,
                 'ra'                    => $request->ra,
                 'codigo_aluno'          => $request->codigo_aluno,
                 'nis'                   => $request->nis,

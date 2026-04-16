@@ -1,18 +1,21 @@
 <x-sigem-layout title="Editar Responsável">
-    <x-page-header :title="'Editar: ' . $responsavel->pessoa->nome" :back-route="route('pessoas.responsaveis.index')" back-label="Voltar"/>
+    <x-page-header :title="'Editar: ' . $responsavel->nome" :back-route="route('pessoas.responsaveis.index')" back-label="Voltar"/>
     <form method="POST" action="{{ route('pessoas.responsaveis.update', $responsavel) }}">
         @csrf @method('PATCH')
-        @php $celular = $responsavel->pessoa->contatos->firstWhere('tipo', 'celular'); @endphp
+        @php
+            $pessoaResp = $responsavel->pessoa;
+            $celular = $pessoaResp ? $pessoaResp->contatos->firstWhere('tipo', 'celular') : null;
+        @endphp
         <x-form-card title="Dados Pessoais e de Contato">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div class="md:col-span-2">
                     <x-form-field label="Nome Completo" name="nome" required>
-                        <input type="text" name="nome" value="{{ old('nome', $responsavel->pessoa->nome) }}"
+                        <input type="text" name="nome" value="{{ old('nome', $pessoaResp?->nome) }}"
                             class="w-full px-4 py-2.5 rounded-xl border @error('nome') border-red-400 @else border-gray-300 @enderror focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
                     </x-form-field>
                 </div>
                 <x-form-field label="CPF" name="cpf">
-                    <input type="text" name="cpf" value="{{ old('cpf', $responsavel->pessoa->cpf) }}"
+                    <input type="text" name="cpf" value="{{ old('cpf', $pessoaResp?->cpf) }}"
                         class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
                 </x-form-field>
                 <x-form-field label="Tipo de Responsável" name="tipo_responsavel" required>

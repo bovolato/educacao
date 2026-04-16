@@ -1,5 +1,5 @@
-<x-sigem-layout :title="$professor->pessoa->nome">
-    <x-page-header :title="$professor->pessoa->nome" subtitle="Ficha do Professor" :back-route="route('pessoas.professores.index')" back-label="Voltar">
+<x-sigem-layout :title="$professor->nome">
+    <x-page-header :title="$professor->nome" subtitle="Ficha do Professor" :back-route="route('pessoas.professores.index')" back-label="Voltar">
         <x-slot name="actions">
             <x-action-button href="{{ route('pessoas.professores.vincular-turmas', $professor) }}" variant="secondary"
                 icon='<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>'>
@@ -8,6 +8,12 @@
             <x-action-button href="{{ route('pessoas.professores.edit', $professor) }}" variant="secondary">Editar</x-action-button>
         </x-slot>
     </x-page-header>
+
+    @if(! $professor->pessoa)
+        <div class="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <strong>Cadastro incompleto:</strong> não há registro de pessoa vinculado a este professor. Os dados pessoais e contatos não podem ser exibidos. Corrija o vínculo (<code class="text-xs">pessoa_id</code>) no banco de dados.
+        </div>
+    @endif
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div class="lg:col-span-2 space-y-5">
@@ -22,6 +28,7 @@
                             <p class="font-medium text-gray-800">—</p>
                         @endif
                     </div>
+                    <div><p class="text-xs text-gray-500 uppercase mb-0.5">Cidade (vínculo)</p><p class="font-medium">{{ $professor->cidade_vinculo ?? ($professor->escola?->cidade ?? '—') }}</p></div>
                     <div><p class="text-xs text-gray-500 uppercase mb-0.5">Matrícula</p><p class="font-mono font-medium">{{ $professor->matricula_funcional ?? '—' }}</p></div>
                     <div><p class="text-xs text-gray-500 uppercase mb-0.5">Registro Prof.</p><p class="font-medium">{{ $professor->registro_profissional ?? '—' }}</p></div>
                     <div><p class="text-xs text-gray-500 uppercase mb-0.5">Formação</p><p class="font-medium">{{ $professor->formacao ?? '—' }}</p></div>
@@ -67,27 +74,36 @@
         <div class="space-y-5">
             <div class="bg-white rounded-2xl border border-gray-200 p-5">
                 <h3 class="font-semibold text-gray-800 mb-4">Dados Pessoais</h3>
-                <div class="space-y-3">
-                    <div><p class="text-xs text-gray-500 uppercase mb-0.5">CPF</p><p class="text-sm font-medium">{{ $professor->pessoa->cpf ?? '—' }}</p></div>
-                    <div><p class="text-xs text-gray-500 uppercase mb-0.5">Nascimento</p>
-                        <p class="text-sm font-medium">{{ $professor->pessoa->data_nascimento ? \Carbon\Carbon::parse($professor->pessoa->data_nascimento)->format('d/m/Y') : '—' }}</p>
+                @if($professor->pessoa)
+                    <div class="space-y-3">
+                        @php $pp = $professor->pessoa; @endphp
+                        <div><p class="text-xs text-gray-500 uppercase mb-0.5">CPF</p><p class="text-sm font-medium">{{ $pp->cpf ?? '—' }}</p></div>
+                        <div><p class="text-xs text-gray-500 uppercase mb-0.5">Nascimento</p>
+                            <p class="text-sm font-medium">{{ $pp->data_nascimento ? \Carbon\Carbon::parse($pp->data_nascimento)->format('d/m/Y') : '—' }}</p>
+                        </div>
+                        <div><p class="text-xs text-gray-500 uppercase mb-0.5">Sexo</p>
+                            <p class="text-sm font-medium">{{ $pp->sexo === 'M' ? 'Masculino' : ($pp->sexo === 'F' ? 'Feminino' : '—') }}</p>
+                        </div>
                     </div>
-                    <div><p class="text-xs text-gray-500 uppercase mb-0.5">Sexo</p>
-                        <p class="text-sm font-medium">{{ $professor->pessoa->sexo === 'M' ? 'Masculino' : ($professor->pessoa->sexo === 'F' ? 'Feminino' : '—') }}</p>
-                    </div>
-                </div>
+                @else
+                    <p class="text-sm text-gray-500">—</p>
+                @endif
             </div>
             <div class="bg-white rounded-2xl border border-gray-200 p-5">
                 <h3 class="font-semibold text-gray-800 mb-3">Contatos</h3>
                 <div class="space-y-2">
-                    @forelse($professor->pessoa->contatos as $contato)
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase">{{ $contato->tipo }}</p>
-                            <p class="text-sm font-medium text-gray-700">{{ $contato->valor }}</p>
-                        </div>
-                    @empty
-                        <p class="text-sm text-gray-500">Nenhum contato cadastrado.</p>
-                    @endforelse
+                    @if($professor->pessoa)
+                        @forelse($professor->pessoa->contatos as $contato)
+                            <div>
+                                <p class="text-xs text-gray-500 uppercase">{{ $contato->tipo }}</p>
+                                <p class="text-sm font-medium text-gray-700">{{ $contato->valor }}</p>
+                            </div>
+                        @empty
+                            <p class="text-sm text-gray-500">Nenhum contato cadastrado.</p>
+                        @endforelse
+                    @else
+                        <p class="text-sm text-gray-500">—</p>
+                    @endif
                 </div>
             </div>
         </div>

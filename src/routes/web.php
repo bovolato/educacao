@@ -51,7 +51,10 @@ Route::middleware('auth')->group(function () {
     // ----------------------------------------------------------
     Route::prefix('pessoas')->name('pessoas.')->group(function () {
         Route::resource('alunos', AlunoController::class)->names('alunos');
-        Route::resource('professores', ProfessorController::class)->names('professores');
+        // Força {professor} na URI (Str::singular('professores') vira "professore" e quebra rotas que usam {professor})
+        Route::resource('professores', ProfessorController::class)
+            ->names('professores')
+            ->parameters(['professores' => 'professor']);
         Route::get('professores/{professor}/vincular-turmas', [ProfessorController::class, 'vincularTurmas'])->name('professores.vincular-turmas');
         Route::post('professores/{professor}/vincular-turmas', [ProfessorController::class, 'salvarVinculoTurmas'])->name('professores.salvar-vinculo-turmas');
         Route::resource('responsaveis', ResponsavelController::class)->names('responsaveis');

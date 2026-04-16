@@ -1,5 +1,5 @@
-<x-sigem-layout :title="'Matrícula: ' . $matricula->aluno->pessoa->nome">
-    <x-page-header :title="$matricula->aluno->pessoa->nome" subtitle="Ficha de Matrícula" :back-route="route('academico.matriculas.index')" back-label="Voltar">
+<x-sigem-layout :title="'Matrícula: ' . $matricula->aluno->nome">
+    <x-page-header :title="$matricula->aluno->nome" subtitle="Ficha de Matrícula" :back-route="route('academico.matriculas.index')" back-label="Voltar">
         <x-slot name="actions">
             <x-action-button href="{{ route('academico.matriculas.edit', $matricula) }}" variant="secondary">Editar</x-action-button>
         </x-slot>
@@ -48,7 +48,7 @@
         <div class="bg-white rounded-2xl border border-gray-200 p-5 h-fit">
             <h3 class="font-semibold text-gray-800 mb-4">Dados do Aluno</h3>
             <div class="space-y-3">
-                <div><p class="text-xs text-gray-500 uppercase mb-0.5">Nome</p><p class="font-medium text-sm">{{ $matricula->aluno->pessoa->nome }}</p></div>
+                <div><p class="text-xs text-gray-500 uppercase mb-0.5">Nome</p><p class="font-medium text-sm">{{ $matricula->aluno->nome }}</p></div>
                 <div><p class="text-xs text-gray-500 uppercase mb-0.5">RA</p><p class="font-mono text-sm">{{ $matricula->aluno->ra ?? '—' }}</p></div>
                 <a href="{{ route('pessoas.alunos.show', $matricula->aluno) }}" class="inline-flex items-center gap-1 text-sm text-indigo-600 hover:underline mt-2">
                     Ver ficha completa do aluno →

@@ -10,6 +10,18 @@
     <form method="GET" class="flex flex-wrap gap-3 mb-5">
         <input type="text" name="busca" value="{{ request('busca') }}" placeholder="Buscar turma..."
             class="flex-1 min-w-[200px] px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+        <select name="cidade" class="min-w-[160px] px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <option value="">Todas as cidades</option>
+            @foreach($cidades as $cidade)
+                <option value="{{ $cidade }}" @selected(request('cidade') === $cidade)>{{ $cidade }}</option>
+            @endforeach
+        </select>
+        <select name="escola" class="min-w-[200px] px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <option value="">Todas as escolas</option>
+            @foreach($escolas as $e)
+                <option value="{{ $e->id }}" @selected((string) request('escola') === (string) $e->id)>{{ $e->nome }}</option>
+            @endforeach
+        </select>
         <select name="serie" class="px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
             <option value="">Todas as séries</option>
             @foreach($series as $s)
@@ -23,7 +35,7 @@
             <option value="suspensa" @selected(request('status') === 'suspensa')>Suspensa</option>
         </select>
         <button type="submit" class="px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors">Filtrar</button>
-        @if(request()->hasAny(['busca', 'serie', 'status']))
+        @if(request()->hasAny(['busca', 'cidade', 'escola', 'serie', 'status']))
             <a href="{{ route('academico.turmas.index') }}" class="px-5 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-200 transition-colors">Limpar</a>
         @endif
     </form>
@@ -32,7 +44,7 @@
         <x-slot name="head">
             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">Turma</th>
             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">Série / Turno</th>
-            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">Escola</th>
+            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">Escola / Cidade</th>
             <th class="px-5 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">Alunos</th>
             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">Status</th>
             <th class="px-5 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wide">Ações</th>
@@ -45,7 +57,12 @@
                     <p class="text-sm text-gray-700">{{ $turma->serie->nome ?? '—' }}</p>
                     <p class="text-xs text-gray-500">{{ $turma->turno->nome ?? '—' }}</p>
                 </td>
-                <td class="px-5 py-3.5 text-sm text-gray-600">{{ $turma->escola->nome ?? '—' }}</td>
+                <td class="px-5 py-3.5 text-sm text-gray-600">
+                    <p class="font-medium text-gray-800">{{ $turma->escola->nome ?? '—' }}</p>
+                    @if($turma->escola?->cidade)
+                        <p class="text-xs text-gray-500">{{ $turma->escola->cidade }}{{ $turma->escola->uf ? '/' . $turma->escola->uf : '' }}</p>
+                    @endif
+                </td>
                 <td class="px-5 py-3.5 text-center">
                     <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 text-sm font-semibold">
                         {{ $turma->matriculas_ativas_count }}

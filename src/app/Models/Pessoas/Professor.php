@@ -15,7 +15,7 @@ class Professor extends Model
     protected $table = 'professores';
 
     protected $fillable = [
-        'pessoa_id', 'escola_id', 'matricula_funcional', 'formacao', 'registro_profissional', 'data_admissao', 'ativo',
+        'pessoa_id', 'escola_id', 'cidade_vinculo', 'matricula_funcional', 'formacao', 'registro_profissional', 'data_admissao', 'ativo',
     ];
 
     protected $casts = [
@@ -47,7 +47,11 @@ class Professor extends Model
 
     public function getNomeAttribute(): string
     {
-        return $this->pessoa?->nome_exibicao ?? '';
+        if ($this->pessoa) {
+            return $this->pessoa->nome_exibicao;
+        }
+
+        return 'Professor #'.$this->id;
     }
 
     public function scopeAtivo($query)

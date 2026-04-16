@@ -19,24 +19,80 @@ class MatriculaController extends Controller
             ->when($request->filled('situacao'), fn($q) => $q->where('situacao', $request->situacao))
             ->when($request->filled('turma'), fn($q) => $q->where('turma_id', $request->turma))
             ->when($request->filled('escola'), fn($q) => $q->where('escola_id', $request->escola))
+            ->when(
+                $request->filled('cidade') && ! $request->filled('escola'),
+                fn($q) => $q->whereHas('escola', fn($e) => $e->where('cidade', $request->cidade))
+            )
             ->orderByDesc('data_matricula')
             ->paginate(10)->withQueryString();
 
-        $turmas  = Turma::where('status', 'ativa')->with('serie')->orderBy('nome')->get();
-        $escolas = Escola::where('status', 'ativa')->orderBy('nome')->get();
+        $cidades = Escola::query()
+            ->where('status', 'ativa')
+            ->whereNotNull('cidade')
+            ->where('cidade', '!=', '')
+            ->distinct()
+            ->orderBy('cidade')
+            ->pluck('cidade');
 
-        return view('academico.matriculas.index', compact('matriculas', 'turmas', 'escolas'));
+        $escolasJson = Escola::query()
+            ->where('status', 'ativa')
+            ->orderBy('nome')
+            ->get(['id', 'nome', 'cidade'])
+            ->map(fn ($e) => ['id' => (int) $e->id, 'nome' => $e->nome, 'cidade' => $e->cidade])
+            ->values();
+
+        $turmasJson = Turma::query()
+            ->where('status', 'ativa')
+            ->with(['serie:id,nome', 'escola:id,cidade'])
+            ->orderBy('nome')
+            ->get()
+            ->map(fn ($t) => [
+                'id'         => (int) $t->id,
+                'nome'       => $t->nome,
+                'serie_nome' => $t->serie?->nome,
+                'escola_id'  => (int) $t->escola_id,
+                'cidade'     => $t->escola?->cidade,
+            ])
+            ->values();
+
+        return view('academico.matriculas.index', compact('matriculas', 'cidades', 'escolasJson', 'turmasJson'));
     }
 
     public function create(Request $request)
     {
-        $alunos  = Aluno::with('pessoa')->where('ativo', true)->get()->sortBy(fn($a) => $a->pessoa->nome);
-        $escolas = Escola::where('status', 'ativa')->orderBy('nome')->get();
-        $anos    = AnoLetivo::where('ativo', true)->get();
+        $anos = AnoLetivo::where('ativo', true)->get();
+
+        $cidades = Escola::query()
+            ->where('status', 'ativa')
+            ->whereNotNull('cidade')
+            ->where('cidade', '!=', '')
+            ->distinct()
+            ->orderBy('cidade')
+            ->pluck('cidade');
+
+        $escolasJson = Escola::query()
+            ->where('status', 'ativa')
+            ->orderBy('nome')
+            ->get(['id', 'nome', 'cidade'])
+            ->map(fn ($e) => ['id' => (int) $e->id, 'nome' => $e->nome, 'cidade' => $e->cidade])
+            ->values();
+
+        $alunosJson = Aluno::query()
+            ->with('pessoa')
+            ->where('ativo', true)
+            ->get()
+            ->sortBy(fn ($a) => $a->nome)
+            ->values()
+            ->map(fn ($a) => [
+                'id'             => (int) $a->id,
+                'nome'           => $a->nome,
+                'ra'             => $a->ra,
+                'cidade_vinculo' => $a->cidade_vinculo,
+            ]);
 
         $alunoPreSelecionado = $request->filled('aluno_id') ? $request->aluno_id : null;
 
-        return view('academico.matriculas.create', compact('alunos', 'escolas', 'anos', 'alunoPreSelecionado'));
+        return view('academico.matriculas.create', compact('anos', 'cidades', 'escolasJson', 'alunosJson', 'alunoPreSelecionado'));
     }
 
     public function store(MatriculaRequest $request)

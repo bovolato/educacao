@@ -1,6 +1,6 @@
-<x-sigem-layout :title="$aluno->pessoa->nome">
+<x-sigem-layout :title="$aluno->nome">
 
-    <x-page-header :title="$aluno->pessoa->nome" subtitle="Ficha do Aluno" :back-route="route('pessoas.alunos.index')" back-label="Voltar para Alunos">
+    <x-page-header :title="$aluno->nome" subtitle="Ficha do Aluno" :back-route="route('pessoas.alunos.index')" back-label="Voltar para Alunos">
         <x-slot name="actions">
             <x-action-button href="{{ route('academico.matriculas.create') }}?aluno_id={{ $aluno->id }}" variant="secondary"
                 icon='<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>'>
@@ -28,27 +28,38 @@
         </div>
     @endif
 
+    @if(! $aluno->pessoa)
+        <div class="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <strong>Cadastro incompleto:</strong> não há registro de pessoa vinculado a este aluno. Os dados pessoais não podem ser exibidos. Corrija o vínculo (<code class="text-xs">pessoa_id</code>) no banco de dados.
+        </div>
+    @endif
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
         <div class="lg:col-span-2 space-y-5">
 
             <div class="bg-white rounded-2xl border border-gray-200 p-6">
                 <h3 class="font-semibold text-gray-800 mb-4">Dados Pessoais</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div><p class="text-xs text-gray-500 uppercase mb-0.5">CPF</p><p class="font-medium">{{ $aluno->pessoa->cpf ?? '—' }}</p></div>
-                    <div><p class="text-xs text-gray-500 uppercase mb-0.5">Nascimento</p>
-                        <p class="font-medium">{{ $aluno->pessoa->data_nascimento ? \Carbon\Carbon::parse($aluno->pessoa->data_nascimento)->format('d/m/Y') : '—' }}</p>
+                @if($aluno->pessoa)
+                    @php $ap = $aluno->pessoa; @endphp
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div><p class="text-xs text-gray-500 uppercase mb-0.5">CPF</p><p class="font-medium">{{ $ap->cpf ?? '—' }}</p></div>
+                        <div><p class="text-xs text-gray-500 uppercase mb-0.5">Nascimento</p>
+                            <p class="font-medium">{{ $ap->data_nascimento ? \Carbon\Carbon::parse($ap->data_nascimento)->format('d/m/Y') : '—' }}</p>
+                        </div>
+                        <div><p class="text-xs text-gray-500 uppercase mb-0.5">Sexo</p><p class="font-medium">{{ $ap->sexo === 'M' ? 'Masculino' : ($ap->sexo === 'F' ? 'Feminino' : '—') }}</p></div>
+                        <div><p class="text-xs text-gray-500 uppercase mb-0.5">Nome da Mãe</p><p class="font-medium">{{ $ap->nome_mae ?? '—' }}</p></div>
+                        <div><p class="text-xs text-gray-500 uppercase mb-0.5">Nome do Pai</p><p class="font-medium">{{ $ap->nome_pai ?? '—' }}</p></div>
+                        <div><p class="text-xs text-gray-500 uppercase mb-0.5">Naturalidade</p>
+                            <p class="font-medium">{{ $ap->naturalidade ?? '—' }}{{ $ap->naturalidade_uf ? '/' . $ap->naturalidade_uf : '' }}</p>
+                        </div>
                     </div>
-                    <div><p class="text-xs text-gray-500 uppercase mb-0.5">Sexo</p><p class="font-medium">{{ $aluno->pessoa->sexo === 'M' ? 'Masculino' : ($aluno->pessoa->sexo === 'F' ? 'Feminino' : '—') }}</p></div>
-                    <div><p class="text-xs text-gray-500 uppercase mb-0.5">Nome da Mãe</p><p class="font-medium">{{ $aluno->pessoa->nome_mae ?? '—' }}</p></div>
-                    <div><p class="text-xs text-gray-500 uppercase mb-0.5">Nome do Pai</p><p class="font-medium">{{ $aluno->pessoa->nome_pai ?? '—' }}</p></div>
-                    <div><p class="text-xs text-gray-500 uppercase mb-0.5">Naturalidade</p>
-                        <p class="font-medium">{{ $aluno->pessoa->naturalidade ?? '—' }}{{ $aluno->pessoa->naturalidade_uf ? '/' . $aluno->pessoa->naturalidade_uf : '' }}</p>
-                    </div>
-                </div>
+                @else
+                    <p class="text-sm text-gray-500">—</p>
+                @endif
             </div>
 
-            @if($aluno->pessoa->contatos->isNotEmpty())
+            @if($aluno->pessoa && $aluno->pessoa->contatos->isNotEmpty())
                 <div class="bg-white rounded-2xl border border-gray-200 p-6">
                     <h3 class="font-semibold text-gray-800 mb-4">Contatos</h3>
                     <div class="space-y-2">
@@ -63,7 +74,7 @@
                 </div>
             @endif
 
-            @if($aluno->pessoa->enderecos->isNotEmpty())
+            @if($aluno->pessoa && $aluno->pessoa->enderecos->isNotEmpty())
                 @php $end = $aluno->pessoa->enderecos->firstWhere('principal', true) ?? $aluno->pessoa->enderecos->first(); @endphp
                 <div class="bg-white rounded-2xl border border-gray-200 p-6">
                     <h3 class="font-semibold text-gray-800 mb-2">Endereço</h3>
@@ -119,6 +130,7 @@
             <div class="bg-white rounded-2xl border border-gray-200 p-5">
                 <h3 class="font-semibold text-gray-800 mb-4">Dados do Aluno</h3>
                 <div class="space-y-3">
+                    <div><p class="text-xs text-gray-500 uppercase mb-0.5">Cidade (rede)</p><p class="font-medium text-sm">{{ $aluno->cidade_vinculo ?? '—' }}</p></div>
                     <div><p class="text-xs text-gray-500 uppercase mb-0.5">RA</p><p class="font-mono text-sm font-medium">{{ $aluno->ra ?? '—' }}</p></div>
                     <div><p class="text-xs text-gray-500 uppercase mb-0.5">Código</p><p class="font-medium text-sm">{{ $aluno->codigo_aluno ?? '—' }}</p></div>
                     <div><p class="text-xs text-gray-500 uppercase mb-0.5">NIS</p><p class="font-medium text-sm">{{ $aluno->nis ?? '—' }}</p></div>
@@ -137,7 +149,7 @@
                     <div class="space-y-2">
                         @foreach($aluno->responsaveis as $resp)
                             <div>
-                                <p class="text-sm font-medium text-gray-800">{{ $resp->pessoa->nome }}</p>
+                                <p class="text-sm font-medium text-gray-800">{{ $resp->nome }}</p>
                                 <p class="text-xs text-gray-500">{{ $resp->pivot->grau_parentesco ?? $resp->tipo_responsavel }}</p>
                             </div>
                         @endforeach

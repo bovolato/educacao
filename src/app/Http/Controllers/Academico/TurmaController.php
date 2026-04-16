@@ -77,11 +77,6 @@ class TurmaController extends Controller
             ->paginate(10, ['*'], 'alunos_page')
             ->withQueryString();
 
-        $disciplinasTurma = $turma->disciplinas()
-            ->orderBy('disciplinas.nome')
-            ->paginate(10, ['*'], 'disciplinas_page')
-            ->withQueryString();
-
         $professoresTurma = $turma->professores()
             ->with('pessoa')
             ->paginate(10, ['*'], 'professores_page')
@@ -96,7 +91,6 @@ class TurmaController extends Controller
         return view('academico.turmas.show', compact(
             'turma',
             'matriculasTurma',
-            'disciplinasTurma',
             'professoresTurma',
             'disciplinasPorId'
         ));

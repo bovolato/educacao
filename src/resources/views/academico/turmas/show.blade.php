@@ -77,30 +77,6 @@
                 </div>
             @endif
         </div>
-
-        <div class="bg-white rounded-2xl border border-gray-200 lg:col-span-2">
-            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                <h3 class="font-semibold text-gray-800">Disciplinas da Turma</h3>
-                <span class="text-sm text-gray-500">{{ $disciplinasTurma->total() }} disciplina(s)</span>
-            </div>
-            @if($disciplinasTurma->isEmpty())
-                <p class="px-6 py-8 text-center text-gray-500 text-sm">Nenhuma disciplina vinculada.</p>
-            @else
-                <div class="divide-y divide-gray-100">
-                    @foreach($disciplinasTurma as $disc)
-                        <div class="px-6 py-3 flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-medium text-gray-800">{{ $disc->nome }}</p>
-                                <p class="text-xs text-gray-500">{{ $disc->sigla ?? '' }} {{ $disc->pivot->carga_horaria ? '· ' . $disc->pivot->carga_horaria . 'h' : '' }}</p>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-                <div class="px-6 py-3 border-t border-gray-100">
-                    {{ $disciplinasTurma->links() }}
-                </div>
-            @endif
-        </div>
     </div>
 
 </x-sigem-layout>

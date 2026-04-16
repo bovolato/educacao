@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Institucional\Municipio;
 use App\Models\Academico\Disciplina;
 use Illuminate\Database\Seeder;
 
@@ -10,8 +9,6 @@ class DisciplinaSeeder extends Seeder
 {
     public function run(): void
     {
-        $municipio = Municipio::first();
-
         $disciplinas = [
             ['nome' => 'Língua Portuguesa', 'sigla' => 'LP', 'carga_horaria' => 200],
             ['nome' => 'Matemática', 'sigla' => 'MAT', 'carga_horaria' => 200],
@@ -29,8 +26,8 @@ class DisciplinaSeeder extends Seeder
 
         foreach ($disciplinas as $d) {
             Disciplina::firstOrCreate(
-                ['municipio_id' => $municipio->id, 'sigla' => $d['sigla']],
-                array_merge($d, ['municipio_id' => $municipio->id, 'ativo' => true])
+                ['sigla' => $d['sigla']],
+                array_merge($d, ['municipio_id' => null, 'ativo' => true])
             );
         }
     }

@@ -67,11 +67,7 @@
 
     <script>
         function vinculoTurmas() {
-            const existentes = @json(
-                DB::table('turma_professores')
-                    ->where('professor_id', $professor->id)
-                    ->get(['turma_id', 'disciplina_id', 'titular'])
-            );
+            const existentes = @json($vinculosExistentes);
 
             return {
                 vinculos: existentes.length > 0

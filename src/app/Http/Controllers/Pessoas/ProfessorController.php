@@ -203,13 +203,11 @@ class ProfessorController extends Controller
 
         $disciplinas = Disciplina::where('ativo', true)->orderBy('nome')->get();
 
-        $vinculosAtuais = DB::table('turma_professores')
+        $vinculosExistentes = DB::table('turma_professores')
             ->where('professor_id', $professor->id)
-            ->get()
-            ->map(fn($v) => $v->turma_id . '-' . $v->disciplina_id)
-            ->toArray();
+            ->get(['turma_id', 'disciplina_id', 'titular']);
 
-        return view('pessoas.professores.vincular-turmas', compact('professor', 'turmas', 'disciplinas', 'vinculosAtuais'));
+        return view('pessoas.professores.vincular-turmas', compact('professor', 'turmas', 'disciplinas', 'vinculosExistentes'));
     }
 
     public function salvarVinculoTurmas(Request $request, Professor $professor)

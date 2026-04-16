@@ -11,7 +11,6 @@ class DisciplinaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'municipio_id'  => 'nullable|exists:municipios,id',
             'nome'          => 'required|string|max:100',
             'sigla'         => 'nullable|string|max:10',
             'descricao'     => 'nullable|string|max:500',

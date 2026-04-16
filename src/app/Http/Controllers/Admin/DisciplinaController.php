@@ -5,14 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\DisciplinaRequest;
 use App\Models\Academico\Disciplina;
-use App\Models\Institucional\Municipio;
 use Illuminate\Http\Request;
 
 class DisciplinaController extends Controller
 {
     public function index(Request $request)
     {
-        $disciplinas = Disciplina::with('municipio')
+        $disciplinas = Disciplina::query()
             ->when($request->filled('busca'), fn($q) => $q->where('nome', 'like', '%' . $request->busca . '%')
                 ->orWhere('sigla', 'like', '%' . $request->busca . '%'))
             ->when($request->filled('ativo'), fn($q) => $q->where('ativo', $request->ativo === '1'))
@@ -24,8 +23,7 @@ class DisciplinaController extends Controller
 
     public function create()
     {
-        $municipios = Municipio::where('ativo', true)->orderBy('nome')->get();
-        return view('admin.disciplinas.create', compact('municipios'));
+        return view('admin.disciplinas.create');
     }
 
     public function store(DisciplinaRequest $request)
@@ -41,8 +39,7 @@ class DisciplinaController extends Controller
 
     public function edit(Disciplina $disciplina)
     {
-        $municipios = Municipio::where('ativo', true)->orderBy('nome')->get();
-        return view('admin.disciplinas.edit', compact('disciplina', 'municipios'));
+        return view('admin.disciplinas.edit', compact('disciplina'));
     }
 
     public function update(DisciplinaRequest $request, Disciplina $disciplina)

@@ -10,7 +10,7 @@ class AlunoSeeder extends Seeder
     public function run(): void
     {
         // Pegar pessoas nascidas entre 2005 e 2020 (faixa etária escolar)
-        $pessoas = Pessoa::whereRaw("YEAR(data_nascimento) BETWEEN 2005 AND 2020")
+        $pessoas = Pessoa::whereBetween('data_nascimento', ['2005-01-01', '2020-12-31'])
             ->doesntHave('aluno')
             ->limit(60)
             ->get();

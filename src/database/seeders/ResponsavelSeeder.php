@@ -12,7 +12,7 @@ class ResponsavelSeeder extends Seeder
         $alunos = Aluno::with('pessoa')->get();
 
         // Usar pessoas adultas (nascidas antes de 1995) como responsáveis
-        $pessoas = Pessoa::whereRaw("YEAR(data_nascimento) < 1995")
+        $pessoas = Pessoa::where('data_nascimento', '<', '1995-01-01')
             ->doesntHave('responsavel')
             ->doesntHave('aluno')
             ->limit(40)

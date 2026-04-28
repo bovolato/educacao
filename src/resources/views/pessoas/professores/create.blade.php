@@ -1,6 +1,6 @@
 <x-sigem-layout title="Novo Professor">
     <x-page-header title="Novo Professor" :back-route="route('pessoas.professores.index')" back-label="Voltar"/>
-    <form method="POST" action="{{ route('pessoas.professores.store') }}" x-data="professorForm()">
+    <form method="POST" action="{{ route('pessoas.professores.store') }}" @if(! isset($escolaFixa)) x-data="professorForm()" @endif>
         @csrf
         <x-form-card title="Dados Pessoais">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -37,6 +37,13 @@
         </x-form-card>
         <x-form-card title="Dados Funcionais">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                @isset($escolaFixa)
+                    <input type="hidden" name="escola_id" value="{{ $escolaFixa->id }}">
+                    <div class="md:col-span-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+                        <span class="text-gray-500">Escola de atuação:</span>
+                        <strong>{{ $escolaFixa->nome }}</strong>
+                    </div>
+                @else
                 <x-form-field label="Cidade" name="cidade_filtro" hint="Escolha a cidade para listar apenas escolas daquela cidade. A cidade do vínculo é definida pela escola selecionada.">
                     <select id="cidade_filtro" x-model="cidadeSelecionada" @change="onCidadeChange()"
                         class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
@@ -58,6 +65,7 @@
                         </select>
                     </x-form-field>
                 </div>
+                @endisset
                 <x-form-field label="Matrícula Funcional" name="matricula_funcional">
                     <input type="text" name="matricula_funcional" value="{{ old('matricula_funcional') }}"
                         class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
@@ -83,6 +91,7 @@
             <x-action-button type="submit">Salvar Professor</x-action-button>
         </div>
     </form>
+    @if(! isset($escolaFixa))
     <script>
         function professorForm() {
             const escolasAll = @json($escolasJson);
@@ -121,4 +130,5 @@
             };
         }
     </script>
+    @endif
 </x-sigem-layout>

@@ -5,6 +5,21 @@ use App\Http\Controllers\Admin\{EscolaController, AnoLetivoController, SerieCont
 use App\Http\Controllers\Pessoas\{AlunoController, ProfessorController, ResponsavelController};
 use App\Http\Controllers\Academico\{TurmaController, MatriculaController};
 use App\Http\Controllers\Comunicacao\AvisoController;
+use App\Http\Controllers\Escola\{DocumentoEscolaController, FrequenciaEscolaController, NotaEscolaController};
+use App\Http\Controllers\Professor\{
+    AlunosProfessorController,
+    AvaliacoesProfessorController,
+    AulasProfessorController,
+    ContextoProfessorController,
+    FrequenciasBimestreProfessorController,
+    FrequenciasProfessorController,
+    MateriaisProfessorController,
+    NotasProfessorController,
+    PlanosAulaProfessorController,
+    PlanosEnsinoProfessorController,
+    TarefasProfessorController,
+    TurmasProfessorController,
+};
 use Illuminate\Support\Facades\Route;
 
 // Redirecionar raiz para dashboard se autenticado, senão para login
@@ -57,6 +72,8 @@ Route::middleware('auth')->group(function () {
             ->parameters(['professores' => 'professor']);
         Route::get('professores/{professor}/vincular-turmas', [ProfessorController::class, 'vincularTurmas'])->name('professores.vincular-turmas');
         Route::post('professores/{professor}/vincular-turmas', [ProfessorController::class, 'salvarVinculoTurmas'])->name('professores.salvar-vinculo-turmas');
+        Route::get('professores/{professor}/usuario', [ProfessorController::class, 'usuarioForm'])->name('professores.usuario.form');
+        Route::post('professores/{professor}/usuario', [ProfessorController::class, 'usuarioStore'])->name('professores.usuario.store');
         Route::resource('responsaveis', ResponsavelController::class)->names('responsaveis');
     });
 
@@ -79,6 +96,11 @@ Route::middleware('auth')->group(function () {
         })->name('municipio.escolas');
 
         Route::get('/escolas/{escola}/salas', function (\App\Models\Institucional\Escola $escola) {
+            $eid = app(\App\Services\EscopoAcesso::class)->escolaIdObrigatorioParaUsuarioEscola(auth()->user());
+            if ($eid !== null && (int) $escola->id !== $eid) {
+                abort(403);
+            }
+
             return response()->json(
                 \App\Models\Institucional\Sala::where('escola_id', $escola->id)
                     ->where('ativo', true)
@@ -88,6 +110,11 @@ Route::middleware('auth')->group(function () {
         })->name('escola.salas');
 
         Route::get('/escolas/{escola}/turmas', function (\App\Models\Institucional\Escola $escola) {
+            $eid = app(\App\Services\EscopoAcesso::class)->escolaIdObrigatorioParaUsuarioEscola(auth()->user());
+            if ($eid !== null && (int) $escola->id !== $eid) {
+                abort(403);
+            }
+
             return response()->json(
                 \App\Models\Academico\Turma::where('escola_id', $escola->id)
                     ->where('status', 'ativa')
@@ -98,6 +125,11 @@ Route::middleware('auth')->group(function () {
         })->name('escola.turmas');
 
         Route::get('/escolas/{escola}/professores', function (\App\Models\Institucional\Escola $escola) {
+            $eid = app(\App\Services\EscopoAcesso::class)->escolaIdObrigatorioParaUsuarioEscola(auth()->user());
+            if ($eid !== null && (int) $escola->id !== $eid) {
+                abort(403);
+            }
+
             return response()->json(
                 \App\Models\Pessoas\Professor::with('pessoa')
                     ->where('escola_id', $escola->id)
@@ -108,6 +140,10 @@ Route::middleware('auth')->group(function () {
         })->name('escola.professores');
 
         Route::get('/turmas/{turma}/disciplinas', function (\App\Models\Academico\Turma $turma) {
+            if (! app(\App\Services\EscopoAcesso::class)->turmaAcessivelPeloUsuario(auth()->user(), $turma)) {
+                abort(403);
+            }
+
             return response()->json(
                 $turma->disciplinas()->orderBy('nome')->get(['disciplinas.id', 'disciplinas.nome', 'disciplinas.sigla'])
             );
@@ -131,18 +167,65 @@ Route::middleware('auth')->group(function () {
     Route::get('/escola/alunos', fn() => redirect()->route('pessoas.alunos.index'))->name('escola.alunos.index');
     Route::get('/escola/professores', fn() => redirect()->route('pessoas.professores.index'))->name('escola.professores.index');
     Route::get('/escola/matriculas', fn() => redirect()->route('academico.matriculas.index'))->name('escola.matriculas.index');
-    Route::get('/escola/frequencias', fn() => view('em-construcao', ['titulo' => 'Frequência']))->name('escola.frequencias.index');
-    Route::get('/escola/notas', fn() => view('em-construcao', ['titulo' => 'Notas']))->name('escola.notas.index');
-    Route::get('/escola/documentos', fn() => view('em-construcao', ['titulo' => 'Documentos']))->name('escola.documentos.index');
+    Route::get('/escola/frequencias', [FrequenciaEscolaController::class, 'index'])->name('escola.frequencias.index');
+    Route::get('/escola/frequencias/turmas/{turma}', [FrequenciaEscolaController::class, 'turma'])->name('escola.frequencias.turma');
+    Route::get('/escola/frequencias/aulas/{aula}', [FrequenciaEscolaController::class, 'aula'])->name('escola.frequencias.aula');
 
-    Route::get('/professor/turmas', fn() => view('em-construcao', ['titulo' => 'Minhas Turmas']))->name('professor.turmas.index');
-    Route::get('/professor/frequencias', fn() => view('em-construcao', ['titulo' => 'Frequência']))->name('professor.frequencias.index');
-    Route::get('/professor/notas', fn() => view('em-construcao', ['titulo' => 'Lançar Notas']))->name('professor.notas.index');
-    Route::get('/professor/avaliacoes', fn() => view('em-construcao', ['titulo' => 'Avaliações']))->name('professor.avaliacoes.index');
-    Route::get('/professor/aulas', fn() => view('em-construcao', ['titulo' => 'Conteúdo Ministrado']))->name('professor.aulas.index');
-    Route::get('/professor/planos', fn() => view('em-construcao', ['titulo' => 'Planos de Aula']))->name('professor.planos.index');
-    Route::get('/professor/materiais', fn() => view('em-construcao', ['titulo' => 'Materiais Didáticos']))->name('professor.materiais.index');
-    Route::get('/professor/tarefas', fn() => view('em-construcao', ['titulo' => 'Tarefas']))->name('professor.tarefas.index');
+    Route::get('/escola/notas', [NotaEscolaController::class, 'index'])->name('escola.notas.index');
+    Route::get('/escola/notas/turmas/{turma}', [NotaEscolaController::class, 'turma'])->name('escola.notas.turma');
+    Route::get('/escola/notas/avaliacoes/{avaliacao}', [NotaEscolaController::class, 'avaliacao'])->name('escola.notas.avaliacao');
+
+    Route::get('/escola/documentos', [DocumentoEscolaController::class, 'index'])->name('escola.documentos.index');
+    Route::get('/escola/documentos/novo', [DocumentoEscolaController::class, 'create'])->name('escola.documentos.create');
+    Route::post('/escola/documentos', [DocumentoEscolaController::class, 'store'])->name('escola.documentos.store');
+    Route::get('/escola/documentos/{documentoEmitido}/imprimir', [DocumentoEscolaController::class, 'imprimir'])->name('escola.documentos.imprimir');
+
+    Route::middleware(['professor'])->prefix('professor')->name('professor.')->group(function () {
+        Route::post('contexto/periodo', [ContextoProfessorController::class, 'setPeriodo'])->name('contexto.periodo');
+
+        Route::get('turmas', [TurmasProfessorController::class, 'index'])->name('turmas.index');
+
+        Route::get('frequencias', [FrequenciasBimestreProfessorController::class, 'index'])->name('frequencias.index');
+        Route::get('frequencias/create', [FrequenciasBimestreProfessorController::class, 'create'])->name('frequencias.create');
+        Route::post('frequencias', [FrequenciasBimestreProfessorController::class, 'store'])->name('frequencias.store');
+        Route::get('frequencias/{frequenciaBimestre}/edit', [FrequenciasBimestreProfessorController::class, 'edit'])->name('frequencias.edit');
+        Route::put('frequencias/{frequenciaBimestre}', [FrequenciasBimestreProfessorController::class, 'update'])->name('frequencias.update');
+
+        // Legado (por aula)
+        Route::get('frequencias-por-aula', [FrequenciasProfessorController::class, 'index'])->name('frequencias.legado.index');
+        Route::get('frequencias/aulas/{aula}/edit', [FrequenciasProfessorController::class, 'edit'])->name('frequencias.aula.edit');
+        Route::put('frequencias/aulas/{aula}', [FrequenciasProfessorController::class, 'update'])->name('frequencias.aula.update');
+
+        Route::get('notas', [NotasProfessorController::class, 'index'])->name('notas.index');
+        Route::get('notas/avaliacoes/{avaliacao}/lancar', [NotasProfessorController::class, 'lancar'])->name('notas.lancar');
+        Route::post('notas/avaliacoes/{avaliacao}', [NotasProfessorController::class, 'salvar'])->name('notas.salvar');
+
+        Route::resource('avaliacoes', AvaliacoesProfessorController::class)
+            ->except(['show'])
+            ->parameters(['avaliacoes' => 'avaliacao']);
+
+        Route::get('aulas', [AulasProfessorController::class, 'index'])->name('aulas.index');
+        Route::get('aulas/create', [AulasProfessorController::class, 'create'])->name('aulas.create');
+        Route::post('aulas', [AulasProfessorController::class, 'store'])->name('aulas.store');
+        Route::get('aulas/{aula}/conteudo', [AulasProfessorController::class, 'conteudo'])->name('aulas.conteudo');
+        Route::post('aulas/{aula}/conteudo', [AulasProfessorController::class, 'salvarConteudo'])->name('aulas.conteudo.salvar');
+
+        Route::resource('planos-ensino', PlanosEnsinoProfessorController::class)
+            ->except(['show'])
+            ->parameters(['planos-ensino' => 'planoEnsino']);
+        Route::resource('planos', PlanosAulaProfessorController::class)
+            ->except(['show'])
+            ->parameters(['planos' => 'planoAula']);
+        Route::resource('materiais', MateriaisProfessorController::class)
+            ->except(['show'])
+            ->parameters(['materiais' => 'materialDidatico']);
+        Route::resource('tarefas', TarefasProfessorController::class)->except(['show']);
+
+        Route::get('alunos', [AlunosProfessorController::class, 'index'])->name('alunos.index');
+        Route::get('alunos/matriculas/{matricula}', [AlunosProfessorController::class, 'show'])->name('alunos.show');
+        Route::post('alunos/matriculas/{matricula}/media-manual', [AlunosProfessorController::class, 'salvarMediaManual'])->name('alunos.media-manual.salvar');
+        Route::post('alunos/matriculas/{matricula}/tarefas', [AlunosProfessorController::class, 'salvarTarefaRegistro'])->name('alunos.tarefas.salvar');
+    });
 
     Route::get('/relatorios', fn() => view('em-construcao', ['titulo' => 'Relatórios']))->name('relatorios.index');
 

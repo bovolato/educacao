@@ -7,6 +7,7 @@ use App\Http\Requests\Academico\MatriculaRequest;
 use App\Models\Academico\{Matricula, Turma, HistoricoMatricula};
 use App\Models\Pessoas\Aluno;
 use App\Models\Institucional\{Escola, AnoLetivo};
+use App\Services\EscopoAcesso;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -14,7 +15,11 @@ class MatriculaController extends Controller
 {
     public function index(Request $request)
     {
+        $escopo = app(EscopoAcesso::class);
+        $user   = $request->user();
+
         $matriculas = Matricula::with(['aluno.pessoa', 'turma.serie', 'escola', 'anoLetivo'])
+            ->when($escopo->escolaIdObrigatorioParaUsuarioEscola($user) !== null, fn ($q) => $escopo->aplicarEscopoMatriculas($q, $user))
             ->when($request->filled('busca'), fn($q) => $q->whereHas('aluno.pessoa', fn($p) => $p->where('nome', 'like', '%' . $request->busca . '%')))
             ->when($request->filled('situacao'), fn($q) => $q->where('situacao', $request->situacao))
             ->when($request->filled('turma'), fn($q) => $q->where('turma_id', $request->turma))
@@ -27,6 +32,7 @@ class MatriculaController extends Controller
             ->paginate(10)->withQueryString();
 
         $cidades = Escola::query()
+            ->when($eid = $escopo->escolaIdObrigatorioParaUsuarioEscola($user), fn ($q) => $q->where('id', $eid))
             ->where('status', 'ativa')
             ->whereNotNull('cidade')
             ->where('cidade', '!=', '')
@@ -35,15 +41,20 @@ class MatriculaController extends Controller
             ->pluck('cidade');
 
         $escolasJson = Escola::query()
+            ->when($eid = $escopo->escolaIdObrigatorioParaUsuarioEscola($user), fn ($q) => $q->where('id', $eid))
             ->where('status', 'ativa')
             ->orderBy('nome')
             ->get(['id', 'nome', 'cidade'])
             ->map(fn ($e) => ['id' => (int) $e->id, 'nome' => $e->nome, 'cidade' => $e->cidade])
             ->values();
 
-        $turmasJson = Turma::query()
+        $turmasQuery = Turma::query()
             ->where('status', 'ativa')
-            ->with(['serie:id,nome', 'escola:id,cidade'])
+            ->with(['serie:id,nome', 'escola:id,cidade']);
+        if ($eid = $escopo->escolaIdObrigatorioParaUsuarioEscola($user)) {
+            $turmasQuery->where('escola_id', $eid);
+        }
+        $turmasJson = $turmasQuery
             ->orderBy('nome')
             ->get()
             ->map(fn ($t) => [
@@ -60,9 +71,14 @@ class MatriculaController extends Controller
 
     public function create(Request $request)
     {
+        $escopo             = app(EscopoAcesso::class);
+        $user               = $request->user();
+        $escolaMatriculaFixa = $escopo->escolaDoUsuario($user);
+
         $anos = AnoLetivo::where('ativo', true)->get();
 
         $cidades = Escola::query()
+            ->when($eid = $escopo->escolaIdObrigatorioParaUsuarioEscola($user), fn ($q) => $q->where('id', $eid))
             ->where('status', 'ativa')
             ->whereNotNull('cidade')
             ->where('cidade', '!=', '')
@@ -71,15 +87,18 @@ class MatriculaController extends Controller
             ->pluck('cidade');
 
         $escolasJson = Escola::query()
+            ->when($eid = $escopo->escolaIdObrigatorioParaUsuarioEscola($user), fn ($q) => $q->where('id', $eid))
             ->where('status', 'ativa')
             ->orderBy('nome')
             ->get(['id', 'nome', 'cidade'])
             ->map(fn ($e) => ['id' => (int) $e->id, 'nome' => $e->nome, 'cidade' => $e->cidade])
             ->values();
 
-        $alunosJson = Aluno::query()
-            ->with('pessoa')
-            ->where('ativo', true)
+        $alunosQuery = Aluno::query()->with('pessoa')->where('ativo', true);
+        if ($escopo->escolaIdObrigatorioParaUsuarioEscola($user) !== null) {
+            $escopo->aplicarEscopoAlunos($alunosQuery, $user);
+        }
+        $alunosJson = $alunosQuery
             ->get()
             ->sortBy(fn ($a) => $a->nome)
             ->values()
@@ -92,11 +111,38 @@ class MatriculaController extends Controller
 
         $alunoPreSelecionado = $request->filled('aluno_id') ? $request->aluno_id : null;
 
-        return view('academico.matriculas.create', compact('anos', 'cidades', 'escolasJson', 'alunosJson', 'alunoPreSelecionado'));
+        return view('academico.matriculas.create', compact(
+            'anos',
+            'cidades',
+            'escolasJson',
+            'alunosJson',
+            'alunoPreSelecionado',
+            'escolaMatriculaFixa'
+        ));
     }
 
     public function store(MatriculaRequest $request)
     {
+        $escopo = app(EscopoAcesso::class);
+        $user   = $request->user();
+
+        if ($eid = $escopo->escolaIdObrigatorioParaUsuarioEscola($user)) {
+            $request->merge(['escola_id' => $eid]);
+        }
+
+        if (! $escopo->matriculaPayloadCoerenteComEscolaDoUsuario(
+            $user,
+            (int) $request->escola_id,
+            (int) $request->turma_id
+        )) {
+            return back()->withErrors(['escola_id' => 'Turma ou escola inválida para o seu perfil.'])->withInput();
+        }
+
+        $aluno = Aluno::findOrFail($request->aluno_id);
+        if (! $escopo->alunoAcessivelPeloUsuario($user, $aluno)) {
+            abort(403);
+        }
+
         $existe = Matricula::where('aluno_id', $request->aluno_id)
             ->where('ano_letivo_id', $request->ano_letivo_id)
             ->where('situacao', 'ativa')
@@ -143,6 +189,8 @@ class MatriculaController extends Controller
 
     public function show(Matricula $matricula)
     {
+        $this->authorize('view', $matricula);
+
         $matricula->load([
             'aluno.pessoa', 'turma.serie', 'turma.turno', 'escola', 'anoLetivo',
             'historicos',
@@ -153,6 +201,8 @@ class MatriculaController extends Controller
 
     public function edit(Matricula $matricula)
     {
+        $this->authorize('update', $matricula);
+
         $turmas = Turma::where('escola_id', $matricula->escola_id)
             ->where('status', 'ativa')
             ->with(['serie', 'turno'])
@@ -164,6 +214,8 @@ class MatriculaController extends Controller
 
     public function update(MatriculaRequest $request, Matricula $matricula)
     {
+        $this->authorize('update', $matricula);
+
         $situacaoAnterior = $matricula->situacao;
 
         DB::transaction(function () use ($request, $matricula, $situacaoAnterior) {
@@ -196,6 +248,8 @@ class MatriculaController extends Controller
 
     public function destroy(Matricula $matricula)
     {
+        $this->authorize('delete', $matricula);
+
         DB::transaction(function () use ($matricula) {
             $matricula->update(['situacao' => 'cancelada']);
 

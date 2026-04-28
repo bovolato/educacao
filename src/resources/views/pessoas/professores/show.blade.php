@@ -2,9 +2,18 @@
     <x-page-header :title="$professor->nome" subtitle="Ficha do Professor" :back-route="route('pessoas.professores.index')" back-label="Voltar">
         <x-slot name="actions">
             <x-action-button href="{{ route('pessoas.professores.vincular-turmas', $professor) }}" variant="secondary"
-                icon='<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>'>
+                icon='<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>'>
                 Vincular Turmas
             </x-action-button>
+            @if(isset($usuarioVinculado) && $usuarioVinculado)
+                <x-action-button href="{{ route('pessoas.professores.usuario.form', $professor) }}" variant="secondary">
+                    Ver login
+                </x-action-button>
+            @else
+                <x-action-button href="{{ route('pessoas.professores.usuario.form', $professor) }}" variant="secondary">
+                    Criar login
+                </x-action-button>
+            @endif
             <x-action-button href="{{ route('pessoas.professores.edit', $professor) }}" variant="secondary">Editar</x-action-button>
         </x-slot>
     </x-page-header>
@@ -41,8 +50,11 @@
 
             <div class="bg-white rounded-2xl border border-gray-200">
                 <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                    <h3 class="font-semibold text-gray-800">Turmas Vinculadas</h3>
-                    <div class="flex items-center gap-3">
+                    <div>
+                        <h3 class="font-semibold text-gray-800">Turmas e disciplinas</h3>
+                        <p class="text-xs text-gray-500 mt-0.5">Uma linha por turma; disciplinas lecionadas aparecem agrupadas (não é turma repetida).</p>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
                         <span class="text-sm text-gray-500">{{ $professor->turmas->unique('id')->count() }} turma(s)</span>
                         <a href="{{ route('pessoas.professores.vincular-turmas', $professor) }}" class="text-xs text-indigo-600 hover:underline font-medium">Gerenciar</a>
                     </div>
@@ -51,20 +63,27 @@
                     <p class="px-6 py-8 text-center text-gray-500 text-sm">Nenhuma turma vinculada. <a href="{{ route('pessoas.professores.vincular-turmas', $professor) }}" class="text-indigo-600 hover:underline">Vincular agora</a></p>
                 @else
                     <div class="divide-y divide-gray-100">
-                        @foreach($professor->turmas as $turma)
-                            @php
-                                $disciplina = \App\Models\Academico\Disciplina::find($turma->pivot->disciplina_id);
-                            @endphp
-                            <div class="px-6 py-3 flex items-center justify-between">
-                                <div>
-                                    <p class="text-sm font-medium text-gray-800">{{ $turma->nome }}</p>
-                                    <p class="text-xs text-gray-500">
-                                        {{ $turma->serie->nome ?? '—' }} · {{ $turma->turno->nome ?? '—' }}
-                                        @if($disciplina) · <span class="text-indigo-600">{{ $disciplina->nome }}</span> @endif
-                                        @if($turma->pivot->titular) · <x-badge color="blue">Titular</x-badge> @endif
-                                    </p>
+                        @foreach($professor->turmas->groupBy('id') as $turmaGrupo)
+                            @php $turma = $turmaGrupo->first(); @endphp
+                            <div class="px-6 py-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                                <div class="min-w-0">
+                                    <p class="text-sm font-semibold text-gray-900">{{ $turma->nome }}</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">{{ $turma->serie->nome ?? '—' }} · {{ $turma->turno->nome ?? '—' }}</p>
+                                    <div class="mt-2 flex flex-wrap gap-1.5">
+                                        @foreach($turmaGrupo as $entrada)
+                                            @php
+                                                $disciplina = \App\Models\Academico\Disciplina::find($entrada->pivot->disciplina_id);
+                                            @endphp
+                                            <span class="inline-flex items-center gap-1 rounded-lg bg-indigo-50 text-indigo-800 px-2 py-0.5 text-xs font-medium">
+                                                {{ $disciplina?->nome ?? '—' }}
+                                                @if($entrada->pivot->titular)
+                                                    <x-badge color="blue">Titular</x-badge>
+                                                @endif
+                                            </span>
+                                        @endforeach
+                                    </div>
                                 </div>
-                                <a href="{{ route('academico.turmas.show', $turma) }}" class="text-xs text-indigo-600 hover:underline">Ver turma</a>
+                                <a href="{{ route('academico.turmas.show', $turma) }}" class="text-xs text-indigo-600 hover:underline shrink-0 self-start sm:self-center">Ver turma</a>
                             </div>
                         @endforeach
                     </div>

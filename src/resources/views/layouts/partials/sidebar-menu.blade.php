@@ -62,13 +62,15 @@
                 ['route' => 'professor.turmas.index', 'label' => 'Minhas Turmas', 'icon' => 'grid'],
             ]],
             ['group' => 'Diário', 'items' => [
+                ['route' => 'professor.alunos.index', 'label' => 'Alunos', 'icon' => 'users'],
                 ['route' => 'professor.frequencias.index', 'label' => 'Frequência', 'icon' => 'check-square'],
                 ['route' => 'professor.notas.index', 'label' => 'Notas', 'icon' => 'star'],
                 ['route' => 'professor.avaliacoes.index', 'label' => 'Avaliações', 'icon' => 'clipboard-check'],
                 ['route' => 'professor.aulas.index', 'label' => 'Conteúdo Ministrado', 'icon' => 'book-open'],
             ]],
             ['group' => 'Pedagógico', 'items' => [
-                ['route' => 'professor.planos.index', 'label' => 'Planos de Aula', 'icon' => 'edit'],
+                ['route' => 'professor.planos-ensino.index', 'label' => 'Planos de ensino', 'icon' => 'list'],
+                ['route' => 'professor.planos.index', 'label' => 'Planos de aula', 'icon' => 'edit'],
                 ['route' => 'professor.materiais.index', 'label' => 'Materiais', 'icon' => 'folder'],
                 ['route' => 'professor.tarefas.index', 'label' => 'Tarefas', 'icon' => 'tasks'],
             ]],

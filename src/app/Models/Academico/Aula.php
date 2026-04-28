@@ -15,6 +15,7 @@ class Aula extends Model
     protected $fillable = [
         'turma_id', 'disciplina_id', 'professor_id', 'data_aula',
         'hora_inicio', 'hora_fim', 'status',
+        'periodo',
     ];
 
     protected $casts = ['data_aula' => 'date'];

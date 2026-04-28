@@ -56,7 +56,7 @@
                             class="w-full px-4 py-2.5 rounded-xl border @error('cidade_vinculo') border-red-400 @else border-gray-300 @enderror focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
                             <option value="">Selecione a cidade...</option>
                             @foreach($cidades as $cidade)
-                                <option value="{{ $cidade }}" @selected(old('cidade_vinculo') == $cidade)>{{ $cidade }}</option>
+                                <option value="{{ $cidade }}" @selected(old('cidade_vinculo', $cidadePadraoEscola ?? null) == $cidade)>{{ $cidade }}</option>
                             @endforeach
                         </select>
                     </x-form-field>

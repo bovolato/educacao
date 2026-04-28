@@ -1,10 +1,17 @@
 <x-sigem-layout title="Nova Turma">
     <x-page-header title="Nova Turma" :back-route="route('academico.turmas.index')" back-label="Voltar"/>
     <form method="POST" action="{{ route('academico.turmas.store') }}"
-          x-data="turmaForm()" x-cloak>
+          @if(! isset($escolaFixa)) x-data="turmaForm()" @endif x-cloak>
         @csrf
         <x-form-card title="Dados da Turma">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                @isset($escolaFixa)
+                    <input type="hidden" name="escola_id" value="{{ $escolaFixa->id }}">
+                    <div class="md:col-span-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+                        <span class="text-gray-500">Escola:</span>
+                        <strong>{{ $escolaFixa->nome }}</strong>
+                    </div>
+                @else
                 <x-form-field label="Cidade" name="cidade_filtro" hint="Escolha primeiro a cidade; em seguida aparecerão apenas as escolas daquela cidade.">
                     <select id="cidade_filtro" x-model="cidadeSelecionada" @change="onCidadeChange()"
                         class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
@@ -23,6 +30,7 @@
                         </template>
                     </select>
                 </x-form-field>
+                @endisset
                 <x-form-field label="Ano Letivo" name="ano_letivo_id" required>
                     <select name="ano_letivo_id" class="w-full px-4 py-2.5 rounded-xl border @error('ano_letivo_id') border-red-400 @else border-gray-300 @enderror focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
                         <option value="">Selecione...</option>
@@ -56,6 +64,14 @@
                         class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
                 </x-form-field>
                 <x-form-field label="Sala" name="sala_id">
+                    @isset($escolaFixa)
+                        <select name="sala_id" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                            <option value="">Nenhuma</option>
+                            @foreach($salas as $sala)
+                                <option value="{{ $sala->id }}" @selected(old('sala_id') == $sala->id)>{{ $sala->nome }}@if($sala->capacidade) ({{ $sala->capacidade }} lugares) @endif</option>
+                            @endforeach
+                        </select>
+                    @else
                     <select name="sala_id" x-model="salaId"
                         class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
                         <option value="">Nenhuma</option>
@@ -71,11 +87,22 @@
                             </span>
                         </p>
                     </template>
+                    @endisset
                 </x-form-field>
                 <x-form-field label="Capacidade (alunos)" name="capacidade">
                     <input type="number" name="capacidade" value="{{ old('capacidade', 35) }}" min="1" max="50"
                         class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
                 </x-form-field>
+                <div class="md:col-span-2">
+                    <label class="inline-flex items-start gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3">
+                        <input type="checkbox" name="polivalente" value="1" class="mt-1 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            @checked(old('polivalente'))>
+                        <span class="text-sm text-gray-800">
+                            <span class="font-medium">Turma polivalente</span>
+                            <span class="block text-xs text-gray-500 mt-0.5">Para 1º ao 5º ano: o professor lança <strong>uma</strong> aula e <strong>uma</strong> frequência por data para a turma (sem separar por matéria).</span>
+                        </span>
+                    </label>
+                </div>
                 <x-form-field label="Status" name="status" required>
                     <select name="status" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
                         <option value="ativa" @selected(old('status', 'ativa') === 'ativa')>Ativa</option>
@@ -91,6 +118,7 @@
         </div>
     </form>
 
+    @if(! isset($escolaFixa))
     @php
         $escolasJson = $escolas->map(fn ($e) => ['id' => (int) $e->id, 'nome' => $e->nome, 'cidade' => $e->cidade])->values();
     @endphp
@@ -156,4 +184,5 @@
             };
         }
     </script>
+    @endif
 </x-sigem-layout>

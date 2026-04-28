@@ -49,11 +49,13 @@ RUN groupadd -g 1000 www \
 # Definir diretório de trabalho
 WORKDIR /var/www
 
-# Copiar permissões
-COPY --chown=www:www . .
+# Pool FPM como usuário www (UID 1000) — mesmo dono típico dos arquivos em WSL/Linux ao montar ./src
+COPY zzz-www-pool.conf /usr/local/etc/php-fpm.d/zzz-www-pool.conf
 
-USER www
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint-laravel.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint-laravel.sh
 
 EXPOSE 9000
 
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint-laravel.sh"]
 CMD ["php-fpm"]

@@ -15,7 +15,7 @@ class Turma extends Model
 
     protected $fillable = [
         'escola_id', 'ano_letivo_id', 'serie_id', 'turno_id',
-        'sala_id', 'nome', 'codigo', 'capacidade', 'status',
+        'sala_id', 'nome', 'codigo', 'capacidade', 'polivalente', 'status',
     ];
 
     public function escola()
@@ -70,6 +70,11 @@ class Turma extends Model
     public function aulas()
     {
         return $this->hasMany(Aula::class);
+    }
+
+    public function avaliacoes()
+    {
+        return $this->hasMany(Avaliacao::class);
     }
 
     public function getTotalAlunosAttribute(): int

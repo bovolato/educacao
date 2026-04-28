@@ -19,6 +19,7 @@ class TurmaRequest extends FormRequest
             'nome'          => 'required|string|max:50',
             'codigo'        => 'nullable|string|max:20',
             'capacidade'    => 'nullable|integer|min:1|max:50',
+            'polivalente'   => 'nullable|boolean',
             'status'        => 'required|in:ativa,encerrada,suspensa',
         ];
     }

@@ -1,11 +1,22 @@
 <x-sigem-layout title="Nova Matrícula">
     <x-page-header title="Nova Matrícula" :back-route="route('academico.matriculas.index')" back-label="Voltar"/>
     <form method="POST" action="{{ route('academico.matriculas.store') }}"
-          x-data="matriculaForm()" x-cloak>
+          @if(! isset($escolaMatriculaFixa)) x-data="matriculaForm()" @endif x-cloak>
         @csrf
         <x-form-card title="Dados da Matrícula">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <x-form-field label="Aluno" name="aluno_id" required>
+                    @isset($escolaMatriculaFixa)
+                        <select name="aluno_id"
+                            class="w-full px-4 py-2.5 rounded-xl border @error('aluno_id') border-red-400 @else border-gray-300 @enderror focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                            <option value="">Selecione o aluno...</option>
+                            @foreach($alunosJson as $al)
+                                <option value="{{ $al['id'] }}" @selected(old('aluno_id', $alunoPreSelecionado) == $al['id'])>
+                                    {{ $al['nome'] }} (RA: {{ $al['ra'] ?: 'S/RA' }})
+                                </option>
+                            @endforeach
+                        </select>
+                    @else
                     <select name="aluno_id" x-model="alunoId"
                         class="w-full px-4 py-2.5 rounded-xl border @error('aluno_id') border-red-400 @else border-gray-300 @enderror focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
                         <option value="">Selecione o aluno...</option>
@@ -13,8 +24,16 @@
                             <option :value="String(al.id)" x-text="al.nome + ' (RA: ' + (al.ra || 'S/RA') + ')'"></option>
                         </template>
                     </select>
+                    @endisset
                 </x-form-field>
 
+                @isset($escolaMatriculaFixa)
+                    <input type="hidden" name="escola_id" value="{{ $escolaMatriculaFixa->id }}">
+                    <div class="md:col-span-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+                        <span class="text-gray-500">Escola:</span>
+                        <strong>{{ $escolaMatriculaFixa->nome }}</strong>
+                    </div>
+                @else
                 <x-form-field label="Cidade" name="cidade_filtro" hint="Filtra alunos e escolas desta cidade. Em branco, lista todos os alunos e escolas.">
                     <select id="cidade_filtro" x-model="cidadeSelecionada" @change="onCidadeChange()"
                         class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
@@ -35,6 +54,7 @@
                         </template>
                     </select>
                 </x-form-field>
+                @endisset
 
                 <x-form-field label="Ano Letivo" name="ano_letivo_id" required>
                     <select name="ano_letivo_id"
@@ -47,6 +67,23 @@
                 </x-form-field>
 
                 <x-form-field label="Turma" name="turma_id" required>
+                    @isset($escolaMatriculaFixa)
+                        @php
+                            $turmasEscola = \App\Models\Academico\Turma::where('escola_id', $escolaMatriculaFixa->id)
+                                ->where('status', 'ativa')
+                                ->with(['serie', 'turno'])
+                                ->orderBy('nome')
+                                ->get();
+                        @endphp
+                        <select name="turma_id" class="w-full px-4 py-2.5 rounded-xl border @error('turma_id') border-red-400 @else border-gray-300 @enderror focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                            <option value="">Selecione a turma...</option>
+                            @foreach($turmasEscola as $t)
+                                <option value="{{ $t->id }}" @selected(old('turma_id') == $t->id)>
+                                    {{ $t->nome }}@if($t->serie) — {{ $t->serie->nome }} @endif @if($t->turno) / {{ $t->turno->nome }} @endif
+                                </option>
+                            @endforeach
+                        </select>
+                    @else
                     <select name="turma_id" x-model="turmaId"
                         class="w-full px-4 py-2.5 rounded-xl border @error('turma_id') border-red-400 @else border-gray-300 @enderror focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
                         <option value="">Selecione a escola primeiro...</option>
@@ -56,6 +93,7 @@
                             </option>
                         </template>
                     </select>
+                    @endisset
                 </x-form-field>
 
                 <x-form-field label="Nº Matrícula" name="numero_matricula" hint="Deixe em branco para gerar automaticamente">
@@ -70,6 +108,7 @@
         </div>
     </form>
 
+    @if(! isset($escolaMatriculaFixa))
     <script>
         function matriculaForm() {
             const escolasAll = @json($escolasJson);
@@ -150,4 +189,5 @@
             };
         }
     </script>
+    @endif
 </x-sigem-layout>

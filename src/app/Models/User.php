@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\Pessoas\Pessoa;
+use App\Models\Pessoas\{Pessoa, Professor};
 use App\Models\Institucional\{Municipio, Escola};
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -40,6 +40,11 @@ class User extends Authenticatable
     public function escola()
     {
         return $this->belongsTo(Escola::class);
+    }
+
+    public function professor()
+    {
+        return $this->hasOne(Professor::class, 'pessoa_id', 'pessoa_id');
     }
 
     public function isSecretariaMunicipal(): bool

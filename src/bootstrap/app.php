@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureUserIsProfessor;
 use App\Http\Middleware\LoadAuthenticatedUserRoles;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -14,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             LoadAuthenticatedUserRoles::class,
+        ]);
+        $middleware->alias([
+            'professor' => EnsureUserIsProfessor::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

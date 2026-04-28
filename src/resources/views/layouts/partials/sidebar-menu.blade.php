@@ -64,7 +64,7 @@
             ['group' => 'Diário', 'items' => [
                 ['route' => 'professor.alunos.index', 'label' => 'Alunos', 'icon' => 'users'],
                 ['route' => 'professor.frequencias.index', 'label' => 'Frequência', 'icon' => 'check-square'],
-                ['route' => 'professor.notas.index', 'label' => 'Notas', 'icon' => 'star'],
+                ['route' => 'professor.notas-bimestre.index', 'label' => 'Notas (bimestre)', 'icon' => 'star'],
                 ['route' => 'professor.avaliacoes.index', 'label' => 'Avaliações', 'icon' => 'clipboard-check'],
                 ['route' => 'professor.aulas.index', 'label' => 'Conteúdo Ministrado', 'icon' => 'book-open'],
             ]],

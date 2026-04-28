@@ -80,7 +80,13 @@
                 <div class="flex items-start justify-between gap-3">
                     <div>
                         <div class="text-sm font-semibold text-gray-900">Notas e médias (todas as disciplinas)</div>
-                        <div class="text-xs text-gray-500">Média calculada por disciplina (ponderada pelo valor da avaliação) + ajuste manual (salva no boletim).</div>
+                        <div class="text-xs text-gray-500">
+                            @if(!empty($usarNotasBimestre))
+                                Exibindo <strong>Notas do bimestre</strong> (quando lançadas) + ajuste manual (boletim).
+                            @else
+                                Média calculada por disciplina (ponderada pelo valor da avaliação) + ajuste manual (salva no boletim).
+                            @endif
+                        </div>
                     </div>
                 </div>
 
@@ -91,15 +97,24 @@
                                 <span class="font-medium">Período:</span> {{ $periodoSelecionado }}
                             </div>
                             <div class="inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2">
-                                <span class="text-xs font-semibold text-indigo-800 uppercase tracking-wide">Média das avaliações (calculada)</span>
+                                <span class="text-xs font-semibold text-indigo-800 uppercase tracking-wide">
+                                    {{ !empty($usarNotasBimestre) ? 'Média final (bimestre)' : 'Média das avaliações (calculada)' }}
+                                </span>
                                 <span class="text-2xl font-extrabold text-indigo-900 leading-none">
-                                    {{ $mediaGeralCalculada !== null ? number_format($mediaGeralCalculada, 2, ',', '.') : '—' }}
+                                    @if(!empty($usarNotasBimestre))
+                                        {{ $mediaFinalBimestre !== null ? number_format($mediaFinalBimestre, 2, ',', '.') : '—' }}
+                                    @else
+                                        {{ $mediaGeralCalculada !== null ? number_format($mediaGeralCalculada, 2, ',', '.') : '—' }}
+                                    @endif
                                 </span>
                             </div>
                             <div class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2">
                                 <span class="text-xs font-semibold text-gray-700 uppercase tracking-wide">Média manual (geral)</span>
                                 <span class="text-2xl font-extrabold text-gray-900 leading-none">
-                                    {{ $mediaGeralManual !== null ? number_format($mediaGeralManual, 2, ',', '.') : '—' }}
+                                    @php
+                                        $mm = !empty($usarNotasBimestre) ? ($mediaGeralManualComNotasBimestre ?? null) : ($mediaGeralManual ?? null);
+                                    @endphp
+                                    {{ $mm !== null ? number_format($mm, 2, ',', '.') : '—' }}
                                 </span>
                             </div>
                         </div>
@@ -119,12 +134,23 @@
                         @php
                             $calc = $mediaPorDisciplina[$did] ?? null;
                             $bo = $boletins->get($did);
+                            $notaBim = ($notasBimestrePorDisciplina[$did] ?? null);
                         @endphp
                         <div class="rounded-xl border border-gray-200 bg-white p-4">
                             <div class="flex items-start justify-between gap-3">
                                 <div>
                                     <div class="font-medium text-gray-900">{{ $disc->nome }}</div>
-                                    <div class="text-xs text-gray-500">Média calculada: <span class="font-medium text-gray-700">{{ $calc !== null ? number_format($calc, 2, ',', '.') : '—' }}</span></div>
+                                    @if(!empty($usarNotasBimestre))
+                                        <div class="text-xs text-gray-500">
+                                            Nota do bimestre:
+                                            <span class="font-medium text-gray-700">{{ $notaBim !== null ? number_format($notaBim, 2, ',', '.') : '—' }}</span>
+                                        </div>
+                                        <div class="text-[11px] text-gray-400 mt-0.5">
+                                            (Média por avaliações: {{ $calc !== null ? number_format($calc, 2, ',', '.') : '—' }})
+                                        </div>
+                                    @else
+                                        <div class="text-xs text-gray-500">Média calculada: <span class="font-medium text-gray-700">{{ $calc !== null ? number_format($calc, 2, ',', '.') : '—' }}</span></div>
+                                    @endif
                                 </div>
                             </div>
                             <form method="POST" action="{{ route('professor.alunos.media-manual.salvar', $matricula) }}" class="mt-3 flex flex-col sm:flex-row gap-2 sm:items-end">
@@ -135,7 +161,14 @@
                                     <label class="block text-xs font-medium text-gray-500 mb-1">Média manual</label>
                                     <input name="media" value="{{ $bo?->media }}" placeholder="Ex: 7,50" class="w-full rounded-xl border-gray-300 text-sm" />
                                 </div>
-                                <button class="px-3 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700">Salvar</button>
+                                <div class="flex items-center gap-2">
+                                    <button type="button"
+                                        onclick="const f=this.closest('form'); if(!f) return; const i=f.querySelector('input[name=media]'); if(i) i.value=''; f.submit();"
+                                        class="px-3 py-2 rounded-xl bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 shadow-sm text-sm font-medium transition-colors">
+                                        Limpar
+                                    </button>
+                                    <button class="px-3 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700">Salvar</button>
+                                </div>
                             </form>
                         </div>
                     @endforeach

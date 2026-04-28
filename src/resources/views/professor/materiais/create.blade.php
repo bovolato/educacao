@@ -1,7 +1,7 @@
 <x-sigem-layout title="Novo material">
     <x-page-header title="Novo material" :back-route="route('professor.materiais.index')" back-label="Lista"/>
 
-    <form method="POST" action="{{ route('professor.materiais.store') }}" class="max-w-xl space-y-5">
+    <form method="POST" action="{{ route('professor.materiais.store') }}" class="max-w-2xl space-y-5">
         @csrf
         @if(!empty($turma_id))
             <input type="hidden" name="turma_id" value="{{ $turma_id }}">

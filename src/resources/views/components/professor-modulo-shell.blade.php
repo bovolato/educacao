@@ -2,7 +2,7 @@
     'vinculos',
     'turmaId' => null,
     'disciplinaId' => null,
-    /** frequencias | notas | avaliacoes | aulas | alunos */
+    /** frequencias | notas_bimestre | avaliacoes | aulas | alunos */
     'active' => 'frequencias',
     /** Rota do índice do módulo atual (para o select redirecionar mantendo o contexto) */
     'moduleRoute' => 'professor.frequencias.index',
@@ -12,15 +12,22 @@
     $tid = $turmaId !== null && $turmaId !== '' ? (int) $turmaId : null;
     $did = $disciplinaId !== null && $disciplinaId !== '' ? (int) $disciplinaId : null;
     $periodoAtual = session('professor_periodo', '1B');
-    $turmaPolivalenteSelecionada = false;
-    if ($tid && ! $did && $vinculos) {
+    $turmaPolivalente = false;
+    if ($tid && $vinculos) {
         foreach ($vinculos as $vv) {
             if ((int) $vv->turma_id === $tid && (bool) ($vv->turma_polivalente ?? false)) {
-                $turmaPolivalenteSelecionada = true;
+                $turmaPolivalente = true;
                 break;
             }
         }
     }
+
+    // Se a turma é polivalente, ignora disciplina_id (mesmo que venha na URL vindo de outro módulo).
+    if ($turmaPolivalente) {
+        $did = null;
+    }
+
+    $turmaPolivalenteSelecionada = (bool) ($tid && $turmaPolivalente);
 
     $query = $tid ? array_filter(['turma_id' => $tid, 'disciplina_id' => $did]) : [];
     $queryDisciplina = ($tid && $did) ? ['turma_id' => $tid, 'disciplina_id' => $did] : null;
@@ -47,6 +54,10 @@
         }
         return $base.' border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-200';
     };
+
+    // Em módulos "por turma" (ex.: polivalente), queremos travar o contexto em "Turma (polivalente)".
+    // Assim, evitamos o usuário selecionar disciplina numa turma polivalente quando o módulo não usa disciplina.
+    $travarPolivalente = in_array($active, ['frequencias', 'notas_bimestre'], true);
 @endphp
 
 <div class="mb-6 space-y-4">
@@ -80,11 +91,13 @@
                             Turma (polivalente)
                         </option>
                     @endif
-                    @foreach($grupoTurma as $v)
-                        <option value="{{ $v->turma_id }}:{{ $v->disciplina_id }}" @selected($tid === (int) $v->turma_id && $did === (int) $v->disciplina_id)>
-                            {{ $v->disciplina_nome }}
-                        </option>
-                    @endforeach
+                    @if(!((bool) ($cab->turma_polivalente ?? false) && $travarPolivalente))
+                        @foreach($grupoTurma as $v)
+                            <option value="{{ $v->turma_id }}:{{ $v->disciplina_id }}" @selected($tid === (int) $v->turma_id && $did === (int) $v->disciplina_id)>
+                                {{ $v->disciplina_nome }}
+                            </option>
+                        @endforeach
+                    @endif
                 </optgroup>
             @endforeach
         </select>
@@ -99,7 +112,7 @@
 
     <div class="flex flex-wrap gap-1 border-b border-gray-200 bg-gray-50/80 rounded-t-xl px-2 pt-2">
         <a href="{{ route('professor.frequencias.index', $query) }}" class="{{ $tabClass('frequencias') }}">Frequência</a>
-        <a href="{{ route('professor.notas.index', $query) }}" class="{{ $tabClass('notas') }}">Notas</a>
+        <a href="{{ route('professor.notas-bimestre.index', $query) }}" class="{{ $tabClass('notas_bimestre') }}">Notas (bimestre)</a>
         <a href="{{ route('professor.avaliacoes.index', $query) }}" class="{{ $tabClass('avaliacoes') }}">Avaliações</a>
         <a href="{{ route('professor.aulas.index', $query) }}" class="{{ $tabClass('aulas') }}">Aulas / conteúdo</a>
         <a href="{{ route('professor.alunos.index', $query) }}" class="{{ $tabClass('alunos') }}">Alunos</a>

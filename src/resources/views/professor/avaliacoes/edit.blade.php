@@ -1,7 +1,7 @@
 <x-sigem-layout title="Editar avaliação">
     <x-page-header title="Editar avaliação" :back-route="route('professor.avaliacoes.index', ['turma_id' => $avaliacao->turma_id, 'disciplina_id' => $avaliacao->disciplina_id])" back-label="Voltar"/>
 
-    <form method="POST" action="{{ route('professor.avaliacoes.update', $avaliacao) }}" class="max-w-lg space-y-5">
+    <form method="POST" action="{{ route('professor.avaliacoes.update', $avaliacao) }}" class="max-w-2xl space-y-5">
         @csrf @method('PUT')
         <x-form-field label="Título" name="titulo" required>
             <input type="text" name="titulo" value="{{ old('titulo', $avaliacao->titulo) }}" class="w-full rounded-xl border-gray-300 text-sm">

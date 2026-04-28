@@ -1,7 +1,7 @@
 <x-sigem-layout title="Nova avaliação">
     <x-page-header title="Nova avaliação" :back-route="route('professor.avaliacoes.index', ['turma_id' => $turma_id, 'disciplina_id' => $disciplina_id])" back-label="Voltar"/>
 
-    <form method="POST" action="{{ route('professor.avaliacoes.store') }}" class="max-w-lg space-y-5">
+    <form method="POST" action="{{ route('professor.avaliacoes.store') }}" class="max-w-2xl space-y-5">
         @csrf
         <input type="hidden" name="turma_id" value="{{ $turma_id }}">
         <input type="hidden" name="disciplina_id" value="{{ $disciplina_id }}">

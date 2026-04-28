@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Professor;
 
 use App\Http\Controllers\Controller;
-use App\Models\Academico\{Avaliacao, Boletim, Disciplina, Frequencia, Matricula, Nota, Tarefa, TarefaRegistroAluno, Turma};
+use App\Models\Academico\{Avaliacao, Boletim, Disciplina, Frequencia, Matricula, Nota, NotaBimestre, NotaBimestreItem, Tarefa, TarefaRegistroAluno, Turma};
 use App\Models\Comunicacao\Aviso;
 use App\Services\EscopoAcesso;
 use Illuminate\Http\Request;
@@ -213,6 +213,56 @@ class AlunosProfessorController extends Controller
             $mediaGeralManual = round($mediasManuais->avg(), 2);
         }
 
+        // Notas do bimestre (novo): se existir e tiver valores lançados, tem prioridade para exibição no resumão.
+        $notasBimestreItem = null;
+        $notasBimestrePorDisciplina = [];
+        $mediaFinalBimestre = null;
+        $usarNotasBimestre = false;
+        $mediaGeralManualComNotasBimestre = $mediaGeralManual;
+        $listaNotasBimestre = NotaBimestre::query()
+            ->where('professor_id', $prof->id)
+            ->where('turma_id', $turma->id)
+            ->where('periodo', $periodoSelecionado)
+            ->first();
+
+        if ($listaNotasBimestre) {
+            $notasBimestreItem = NotaBimestreItem::query()
+                ->where('nota_bimestre_id', $listaNotasBimestre->id)
+                ->where('matricula_id', $matricula->id)
+                ->with('disciplinas')
+                ->first();
+
+            if ($notasBimestreItem) {
+                $mediaFinalBimestre = $notasBimestreItem->media_final !== null ? (float) $notasBimestreItem->media_final : null;
+                $notasBimestrePorDisciplina = $notasBimestreItem->disciplinas
+                    ->filter(fn ($r) => $r->nota !== null)
+                    ->mapWithKeys(fn ($r) => [(int) $r->disciplina_id => (float) $r->nota])
+                    ->toArray();
+
+                $usarNotasBimestre = $mediaFinalBimestre !== null || count($notasBimestrePorDisciplina) > 0;
+            }
+        }
+
+        // Média manual (geral) com prioridade para o valor digitado no boletim,
+        // mas usando a Nota do bimestre quando não houver média manual na disciplina.
+        if ($usarNotasBimestre) {
+            $vals = [];
+            foreach ($disciplinaIds as $did) {
+                $did = (int) $did;
+                $manual = $boletins->get($did)?->media;
+                if ($manual !== null && $manual !== '') {
+                    $vals[] = (float) $manual;
+                    continue;
+                }
+                if (array_key_exists($did, $notasBimestrePorDisciplina) && $notasBimestrePorDisciplina[$did] !== null) {
+                    $vals[] = (float) $notasBimestrePorDisciplina[$did];
+                }
+            }
+            if (count($vals) > 0) {
+                $mediaGeralManualComNotasBimestre = round(collect($vals)->avg(), 2);
+            }
+        }
+
         // Tarefas (todas as disciplinas do professor na turma)
         $tarefas = Tarefa::query()
             ->where('turma_id', $turma->id)
@@ -250,6 +300,10 @@ class AlunosProfessorController extends Controller
             'avaliacoes',
             'notasPorAvaliacao',
             'mediaGeralCalculada',
+            'usarNotasBimestre',
+            'notasBimestrePorDisciplina',
+            'mediaFinalBimestre',
+            'mediaGeralManualComNotasBimestre',
             'mediaGeralManual',
             'mediaPorDisciplina',
             'periodos',

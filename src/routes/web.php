@@ -14,6 +14,7 @@ use App\Http\Controllers\Professor\{
     FrequenciasBimestreProfessorController,
     FrequenciasProfessorController,
     MateriaisProfessorController,
+    NotasBimestreProfessorController,
     NotasProfessorController,
     PlanosAulaProfessorController,
     PlanosEnsinoProfessorController,
@@ -199,6 +200,12 @@ Route::middleware('auth')->group(function () {
         Route::get('notas', [NotasProfessorController::class, 'index'])->name('notas.index');
         Route::get('notas/avaliacoes/{avaliacao}/lancar', [NotasProfessorController::class, 'lancar'])->name('notas.lancar');
         Route::post('notas/avaliacoes/{avaliacao}', [NotasProfessorController::class, 'salvar'])->name('notas.salvar');
+
+        Route::get('notas-bimestre', [NotasBimestreProfessorController::class, 'index'])->name('notas-bimestre.index');
+        Route::get('notas-bimestre/create', [NotasBimestreProfessorController::class, 'create'])->name('notas-bimestre.create');
+        Route::post('notas-bimestre', [NotasBimestreProfessorController::class, 'store'])->name('notas-bimestre.store');
+        Route::get('notas-bimestre/{notaBimestre}/edit', [NotasBimestreProfessorController::class, 'edit'])->name('notas-bimestre.edit');
+        Route::put('notas-bimestre/{notaBimestre}', [NotasBimestreProfessorController::class, 'update'])->name('notas-bimestre.update');
 
         Route::resource('avaliacoes', AvaliacoesProfessorController::class)
             ->except(['show'])

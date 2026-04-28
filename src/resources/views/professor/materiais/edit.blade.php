@@ -1,7 +1,7 @@
 <x-sigem-layout title="Editar material">
     <x-page-header title="Editar material" :back-route="route('professor.materiais.index')" back-label="Lista"/>
 
-    <form method="POST" action="{{ route('professor.materiais.update', $materialDidatico) }}" class="max-w-xl space-y-5">
+    <form method="POST" action="{{ route('professor.materiais.update', $materialDidatico) }}" class="max-w-2xl space-y-5">
         @csrf @method('PUT')
         <x-form-field label="Título" name="titulo" required>
             <input type="text" name="titulo" value="{{ old('titulo', $materialDidatico->titulo) }}" class="w-full rounded-xl border-gray-300 text-sm">

@@ -70,17 +70,17 @@
             <div class="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
                 <p class="text-gray-700 font-medium mb-1">Nenhuma aula cadastrada</p>
                 <p class="text-sm text-gray-500 mb-5">Para lançar frequência, primeiro registre pelo menos uma aula com a data desejada.</p>
-                <a href="{{ ($turmaSelecionada?->polivalente ?? false)
+                <x-action-button href="{{ ($turmaSelecionada?->polivalente ?? false)
                         ? route('professor.aulas.create', ['turma_id' => request('turma_id')])
-                        : route('professor.aulas.create', ['turma_id' => request('turma_id'), 'disciplina_id' => request('disciplina_id')]) }}"
-                    class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700">
+                        : route('professor.aulas.create', ['turma_id' => request('turma_id'), 'disciplina_id' => request('disciplina_id')]) }}">
                     Registrar nova aula
-                </a>
+                </x-action-button>
             </div>
         @elseif(! $contextoOk)
-            <div class="rounded-xl border border-gray-200 bg-white p-6 text-sm text-gray-600">
-                Selecione <strong>turma</strong> (e disciplina quando necessário) acima para ver as aulas e lançar a frequência.
-            </div>
+            <x-empty-state
+                title="Selecione o contexto"
+                subtitle="Escolha a turma (e disciplina quando necessário) acima para ver as aulas e lançar a frequência."
+            />
         @endif
     </x-professor-modulo-shell>
 </x-sigem-layout>

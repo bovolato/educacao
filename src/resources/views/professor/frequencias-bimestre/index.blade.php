@@ -44,15 +44,13 @@
 
                     <div class="flex items-center gap-2">
                         @if($lista)
-                            <a href="{{ route('professor.frequencias.edit', $lista) }}"
-                                class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700">
+                            <x-action-button href="{{ route('professor.frequencias.edit', $lista) }}">
                                 Abrir / editar lista
-                            </a>
+                            </x-action-button>
                         @else
-                            <a href="{{ route('professor.frequencias.create', array_filter(['turma_id' => request('turma_id'), 'disciplina_id' => request('disciplina_id')])) }}"
-                                class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700">
+                            <x-action-button href="{{ route('professor.frequencias.create', array_filter(['turma_id' => request('turma_id'), 'disciplina_id' => request('disciplina_id')])) }}">
                                 Criar lista do bimestre
-                            </a>
+                            </x-action-button>
                         @endif
                     </div>
                 </div>

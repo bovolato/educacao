@@ -1,6 +1,12 @@
 <x-sigem-layout title="Materiais">
     <x-page-header title="Materiais didáticos" subtitle="Links e arquivos de apoio por turma/disciplina"
-        :back-route="route('professor.turmas.index')" back-label="Minhas turmas"/>
+        :back-route="route('professor.turmas.index')" back-label="Minhas turmas">
+        <x-slot:actions>
+            <x-action-button href="{{ route('professor.materiais.create', array_filter(['turma_id' => request('turma_id'), 'disciplina_id' => request('disciplina_id')])) }}">
+                + Novo material
+            </x-action-button>
+        </x-slot:actions>
+    </x-page-header>
 
     @if(session('success'))
         <div class="mb-4 rounded-xl bg-green-50 text-green-800 px-4 py-3 text-sm">{{ session('success') }}</div>

@@ -1,17 +1,15 @@
 <x-sigem-layout title="Avaliações">
     <x-page-header title="Avaliações" subtitle="Cadastre provas e atividades; depois lance notas na aba Notas"
         :back-route="route('professor.turmas.index')" back-label="Minhas turmas">
-        <x-slot name="actions">
+        <x-slot:actions>
             @if(request('turma_id') && request('disciplina_id'))
-                <a href="{{ route('professor.avaliacoes.create', ['turma_id' => request('turma_id'), 'disciplina_id' => request('disciplina_id')]) }}"
-                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm text-sm font-medium transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
+                <x-action-button
+                    href="{{ route('professor.avaliacoes.create', ['turma_id' => request('turma_id'), 'disciplina_id' => request('disciplina_id')]) }}"
+                    icon="<path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 4v16m8-8H4'></path>">
                     Nova avaliação
-                </a>
+                </x-action-button>
             @endif
-        </x-slot>
+        </x-slot:actions>
     </x-page-header>
 
     @if(session('success'))
@@ -75,10 +73,9 @@
             <div class="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
                 <p class="text-gray-700 font-medium mb-1">Nenhuma avaliação cadastrada</p>
                 <p class="text-sm text-gray-500 mb-5">Use o botão <strong>Nova avaliação</strong> no topo ou o link abaixo.</p>
-                <a href="{{ route('professor.avaliacoes.create', ['turma_id' => request('turma_id'), 'disciplina_id' => request('disciplina_id')]) }}"
-                    class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700">
+                <x-action-button href="{{ route('professor.avaliacoes.create', ['turma_id' => request('turma_id'), 'disciplina_id' => request('disciplina_id')]) }}">
                     Criar primeira avaliação
-                </a>
+                </x-action-button>
             </div>
         @elseif(! $contextoOk)
             <x-empty-state

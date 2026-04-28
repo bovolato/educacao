@@ -1,6 +1,12 @@
 <x-sigem-layout title="Tarefas">
     <x-page-header title="Tarefas" subtitle="Cadastre atividades e acompanhe por turma/disciplina"
-        :back-route="route('professor.turmas.index')" back-label="Minhas turmas"/>
+        :back-route="route('professor.turmas.index')" back-label="Minhas turmas">
+        <x-slot:actions>
+            <x-action-button href="{{ route('professor.tarefas.create', array_filter(['turma_id' => request('turma_id'), 'disciplina_id' => request('disciplina_id')])) }}">
+                + Nova tarefa
+            </x-action-button>
+        </x-slot:actions>
+    </x-page-header>
 
     @if(session('success'))
         <div class="mb-4 rounded-xl bg-green-50 text-green-800 px-4 py-3 text-sm">{{ session('success') }}</div>

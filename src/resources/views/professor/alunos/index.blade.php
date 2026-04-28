@@ -39,9 +39,8 @@
                         </select>
                     </div>
                     <div class="flex items-center gap-2">
-                        <a href="{{ route('professor.alunos.index') }}"
-                            class="text-sm text-gray-600 hover:underline">Limpar</a>
-                        <button class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700">Buscar</button>
+                        <x-action-button href="{{ route('professor.alunos.index') }}" variant="secondary">Limpar</x-action-button>
+                        <x-action-button type="submit">Buscar</x-action-button>
                     </div>
                 </div>
             </form>
@@ -75,8 +74,9 @@
                                     <x-badge color="{{ $m->situacao === 'ativa' ? 'green' : 'gray' }}">{{ ucfirst($m->situacao) }}</x-badge>
                                 </td>
                                 <td class="px-5 py-3 text-right whitespace-nowrap">
-                                    <a href="{{ route('professor.alunos.show', $m) }}"
-                                        class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">Abrir resumão</a>
+                                    <x-action-button href="{{ route('professor.alunos.show', $m) }}" size="sm">
+                                        Abrir resumão
+                                    </x-action-button>
                                 </td>
                             </tr>
                         @endforeach

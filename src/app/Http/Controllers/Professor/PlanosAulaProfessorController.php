@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Academico\PlanoAula;
 use App\Services\EscopoAcesso;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PlanosAulaProfessorController extends Controller
 {
@@ -46,15 +47,48 @@ class PlanosAulaProfessorController extends Controller
     public function create(Request $request)
     {
         $request->validate([
-            'turma_id'      => 'required|exists:turmas,id',
-            'disciplina_id' => 'required|exists:disciplinas,id',
+            'turma_id'      => 'nullable|exists:turmas,id',
+            'disciplina_id' => 'nullable|exists:disciplinas,id',
         ]);
         $prof = auth()->user()->professor;
-        abort_unless(app(EscopoAcesso::class)->professorLecaDisciplinaNaTurma($prof, (int) $request->turma_id, (int) $request->disciplina_id), 403);
+        $turmaId = $request->filled('turma_id') ? (int) $request->turma_id : null;
+        $disciplinaId = $request->filled('disciplina_id') ? (int) $request->disciplina_id : null;
+
+        $vinculos = DB::table('turma_professores as tp')
+            ->where('tp.professor_id', $prof->id)
+            ->join('turmas as t', 't.id', '=', 'tp.turma_id')
+            ->join('disciplinas as d', 'd.id', '=', 'tp.disciplina_id')
+            ->orderBy('t.nome')
+            ->orderBy('d.nome')
+            ->get([
+                't.id as turma_id',
+                't.nome as turma_nome',
+                'd.id as disciplina_id',
+                'd.nome as disciplina_nome',
+            ]);
+
+        abort_unless($vinculos->count() > 0, 403);
+
+        $turmasOptions = $vinculos->pluck('turma_nome', 'turma_id')->unique();
+        $disciplinasByTurma = $vinculos
+            ->groupBy('turma_id')
+            ->map(fn ($rows) => $rows->pluck('disciplina_nome', 'disciplina_id'));
+
+        $disciplinasOptions = collect();
+        if ($turmaId) {
+            $disciplinasOptions = $disciplinasByTurma->get($turmaId, collect());
+            abort_unless($disciplinasOptions->count() > 0, 403);
+            if ($disciplinaId) {
+                abort_unless(app(EscopoAcesso::class)->professorLecaDisciplinaNaTurma($prof, $turmaId, $disciplinaId), 403);
+            }
+        }
 
         return view('professor.planos-aula.create', [
-            'turma_id'      => (int) $request->turma_id,
-            'disciplina_id' => (int) $request->disciplina_id,
+            'turma_id'      => $turmaId,
+            'disciplina_id' => $disciplinaId,
+            'disciplinasOptions' => $disciplinasOptions,
+            'turmasOptions' => $turmasOptions,
+            'disciplinasByTurma' => $disciplinasByTurma,
         ]);
     }
 

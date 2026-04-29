@@ -22,8 +22,12 @@
         }
     }
 
-    // Se a turma é polivalente, ignora disciplina_id (mesmo que venha na URL vindo de outro módulo).
-    if ($turmaPolivalente) {
+    // Em módulos "por turma" (ex.: polivalente), queremos travar o contexto em "Turma (polivalente)".
+    // Assim, evitamos o usuário selecionar disciplina numa turma polivalente quando o módulo não usa disciplina.
+    $travarPolivalente = in_array($active, ['frequencias', 'notas_bimestre', 'aulas', 'alunos'], true);
+
+    // Se a turma é polivalente e o módulo é "por turma", ignora disciplina_id (mesmo que venha na URL).
+    if ($turmaPolivalente && $travarPolivalente) {
         $did = null;
     }
 
@@ -55,9 +59,6 @@
         return $base.' border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-200';
     };
 
-    // Em módulos "por turma" (ex.: polivalente), queremos travar o contexto em "Turma (polivalente)".
-    // Assim, evitamos o usuário selecionar disciplina numa turma polivalente quando o módulo não usa disciplina.
-    $travarPolivalente = in_array($active, ['frequencias', 'notas_bimestre'], true);
 @endphp
 
 <div class="mb-6 space-y-4">
@@ -86,7 +87,7 @@
             @foreach(collect($vinculos)->groupBy('turma_id') as $grupoTurma)
                 @php $cab = $grupoTurma->first(); @endphp
                 <optgroup label="{{ $cab->turma_nome }}{{ isset($cab->escola_nome) && $cab->escola_nome ? ' · '.$cab->escola_nome : '' }}">
-                    @if((bool) ($cab->turma_polivalente ?? false))
+                    @if((bool) ($cab->turma_polivalente ?? false) && $travarPolivalente)
                         <option value="{{ $cab->turma_id }}|P" @selected($tid === (int) $cab->turma_id && $turmaPolivalenteSelecionada)>
                             Turma (polivalente)
                         </option>

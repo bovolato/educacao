@@ -147,14 +147,10 @@ class TarefasProfessorController extends Controller
             'data_postagem' => 'nullable|date',
             'data_entrega'  => 'nullable|date',
             'valor'         => 'nullable|numeric|min:0|max:1000',
-            'fez'           => 'nullable|array',
-            'fez.*'         => 'integer|exists:matriculas,id',
+            'status'        => 'nullable|array',
+            'status.*'      => 'in:pendente,entregue,nao_entregue',
         ]);
         $tarefa->update($data);
-
-        // Checklist simples: "fez" por aluno (checkbox).
-        // Regra: checked => status=fez; unchecked só "desmarca" se antes era "fez" (não sobrescreve outros status mais ricos como "entregue").
-        $idsMarcados = collect($request->input('fez', []))->map(fn ($v) => (int) $v)->unique()->values();
 
         $matriculasAtivasIds = Matricula::query()
             ->where('turma_id', $tarefa->turma_id)
@@ -162,29 +158,21 @@ class TarefasProfessorController extends Controller
             ->pluck('id')
             ->map(fn ($v) => (int) $v);
 
-        $idsMarcados = $idsMarcados->intersect($matriculasAtivasIds)->values();
+        $status = collect($request->input('status', []))
+            ->mapWithKeys(fn ($v, $k) => [(int) $k => (string) $v])
+            ->filter(fn ($v, $k) => in_array((int) $k, $matriculasAtivasIds->all(), true));
 
-        $existentes = TarefaRegistroAluno::query()
-            ->where('tarefa_id', $tarefa->id)
-            ->whereIn('matricula_id', $matriculasAtivasIds)
-            ->get()
-            ->keyBy('matricula_id');
-
+        // Padronização: removemos "fez/nao_fez" da UI. Se existirem registros antigos, tratamos como entregue/nao_entregue.
         foreach ($matriculasAtivasIds as $mid) {
-            $marcado = $idsMarcados->contains((int) $mid);
-            $reg = $existentes->get((int) $mid);
-
-            if ($marcado) {
-                TarefaRegistroAluno::updateOrCreate(
-                    ['tarefa_id' => $tarefa->id, 'matricula_id' => (int) $mid],
-                    ['professor_id' => $prof->id, 'status' => 'fez']
-                );
-                continue;
+            $st = $status->get((int) $mid, 'pendente');
+            if (! in_array($st, ['pendente', 'entregue', 'nao_entregue'], true)) {
+                $st = 'pendente';
             }
 
-            if ($reg && $reg->status === 'fez') {
-                $reg->update(['status' => 'pendente']);
-            }
+            TarefaRegistroAluno::updateOrCreate(
+                ['tarefa_id' => $tarefa->id, 'matricula_id' => (int) $mid],
+                ['professor_id' => $prof->id, 'status' => $st]
+            );
         }
 
         return redirect()->route('professor.tarefas.index')->with('success', 'Tarefa atualizada.');

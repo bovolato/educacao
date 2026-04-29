@@ -67,6 +67,7 @@
                 ['route' => 'professor.notas-bimestre.index', 'label' => 'Notas (bimestre)', 'icon' => 'star'],
                 ['route' => 'professor.avaliacoes.index', 'label' => 'Avaliações', 'icon' => 'clipboard-check'],
                 ['route' => 'professor.aulas.index', 'label' => 'Conteúdo Ministrado', 'icon' => 'book-open'],
+                ['route' => 'professor.anotacoes.index', 'label' => 'Anotações', 'icon' => 'file-text'],
             ]],
             ['group' => 'Pedagógico', 'items' => [
                 ['route' => 'professor.planos-ensino.index', 'label' => 'Planos de ensino', 'icon' => 'list'],

@@ -10,8 +10,8 @@
         <div class="mb-4 rounded-xl bg-green-50 text-green-800 px-4 py-3 text-sm">{{ session('success') }}</div>
     @endif
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div class="lg:col-span-1 space-y-4">
+    <div class="space-y-5">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <div class="rounded-2xl border border-gray-200 bg-white shadow-sm p-5">
                 <div class="text-sm text-gray-500 mb-1">Informações</div>
                 <div class="text-gray-900 font-semibold text-lg">{{ $matricula->aluno?->nome ?? '—' }}</div>
@@ -43,7 +43,7 @@
             </div>
         </div>
 
-        <div class="lg:col-span-2 space-y-5">
+        <div class="space-y-5">
             <div class="rounded-2xl border border-indigo-100 bg-indigo-50/80 p-4">
                 <div class="text-sm text-indigo-950">
                     <span class="font-semibold">Contexto:</span>
@@ -174,6 +174,7 @@
                     @endforeach
                 </div>
 
+                <div class="mt-4 text-sm font-semibold text-gray-900">Avaliações</div>
                 <div class="mt-4 overflow-hidden rounded-xl border border-gray-200">
                     <table class="min-w-full text-sm">
                         <thead class="bg-gray-50 text-gray-600">
@@ -183,6 +184,7 @@
                                 <th class="px-4 py-2 text-left">Data</th>
                                 <th class="px-4 py-2 text-left">Valor</th>
                                 <th class="px-4 py-2 text-left">Nota</th>
+                                <th class="px-4 py-2 text-left">Observação</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
@@ -190,7 +192,11 @@
                                 @php $n = $notasPorAvaliacao->get($av->id); @endphp
                                 <tr>
                                     <td class="px-4 py-2 text-gray-700">{{ $av->disciplina?->nome ?? '—' }}</td>
-                                    <td class="px-4 py-2 font-medium text-gray-900">{{ $av->titulo }}</td>
+                                    <td class="px-4 py-2">
+                                        <a href="{{ route('professor.avaliacoes.show', $av) }}" class="font-medium text-indigo-700 hover:underline">
+                                            {{ $av->titulo }}
+                                        </a>
+                                    </td>
                                     <td class="px-4 py-2">{{ $av->data_avaliacao?->format('d/m/Y') ?? '—' }}</td>
                                     <td class="px-4 py-2">{{ $av->valor ?? '—' }}</td>
                                     <td class="px-4 py-2">
@@ -200,9 +206,12 @@
                                             <span class="font-medium">{{ $n?->nota ?? '—' }}</span>
                                         @endif
                                     </td>
+                                    <td class="px-4 py-2 text-gray-700">
+                                        {{ $n?->observacao ? \Illuminate\Support\Str::limit($n->observacao, 80) : '—' }}
+                                    </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="5" class="px-4 py-6 text-center text-gray-500">Nenhuma avaliação cadastrada.</td></tr>
+                                <tr><td colspan="6" class="px-4 py-6 text-center text-gray-500">Nenhuma avaliação cadastrada.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -230,12 +239,14 @@
                                         <input type="hidden" name="tarefa_id" value="{{ $t->id }}">
                                         <input type="hidden" name="periodo" value="{{ $periodoSelecionado }}">
                                         <select name="status" class="rounded-xl border-gray-300 text-sm">
-                                            @php $st = $reg?->status ?? 'pendente'; @endphp
+                                            @php
+                                                $st = $reg?->status ?? 'pendente';
+                                                if ($st === 'fez') $st = 'entregue';
+                                                if ($st === 'nao_fez') $st = 'nao_entregue';
+                                            @endphp
                                             <option value="pendente" @selected($st==='pendente')>Pendente</option>
                                             <option value="entregue" @selected($st==='entregue')>Entregue</option>
                                             <option value="nao_entregue" @selected($st==='nao_entregue')>Não entregou</option>
-                                            <option value="fez" @selected($st==='fez')>Fez</option>
-                                            <option value="nao_fez" @selected($st==='nao_fez')>Não fez</option>
                                         </select>
                                         <button class="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100">Salvar</button>
                                     </form>
@@ -250,50 +261,23 @@
             </div>
 
             <div class="rounded-2xl border border-gray-200 bg-white shadow-sm p-5">
-                <div class="text-sm font-semibold text-gray-900 mb-2">Recados / comunicados para a turma</div>
-                @if($avisosTurma->isEmpty())
-                    <div class="text-sm text-gray-600">Nenhum comunicado recente para esta turma.</div>
+                <div class="flex items-start justify-between gap-3 mb-2">
+                    <div class="text-sm font-semibold text-gray-900">Anotações</div>
+                    <x-action-button href="{{ route('professor.anotacoes.create', ['turma_id' => $turma->id, 'matricula_id' => $matricula->id]) }}" size="sm">
+                        + Nova anotação
+                    </x-action-button>
+                </div>
+                @if(($anotacoesAluno ?? collect())->isEmpty())
+                    <div class="text-sm text-gray-600">Nenhuma anotação ainda para este aluno neste bimestre.</div>
                 @else
                     <div class="space-y-3">
-                        @foreach($avisosTurma as $a)
-                            <div class="rounded-xl bg-gray-50 px-4 py-3">
-                                <div class="font-medium text-gray-900">{{ $a->titulo }}</div>
-                                <div class="text-xs text-gray-500 mb-1">{{ $a->publicado_em ? $a->publicado_em->format('d/m/Y H:i') : '—' }}</div>
-                                <div class="text-sm text-gray-700">{{ \Illuminate\Support\Str::limit($a->mensagem, 220) }}</div>
-                            </div>
+                        @foreach($anotacoesAluno as $n)
+                            <a href="{{ route('professor.anotacoes.show', $n) }}" class="block rounded-xl bg-gray-50 px-4 py-3 hover:bg-gray-100 transition-colors">
+                                <div class="font-medium text-gray-900">{{ $n->assunto }}</div>
+                                <div class="text-xs text-gray-500 mb-1">{{ $n->created_at?->format('d/m/Y H:i') ?? '—' }}</div>
+                                <div class="text-sm text-gray-700">{{ \Illuminate\Support\Str::limit($n->texto, 220) }}</div>
+                            </a>
                         @endforeach
-                    </div>
-                @endif
-            </div>
-
-            <div class="rounded-2xl border border-gray-200 bg-white shadow-sm p-5">
-                <div class="text-sm font-semibold text-gray-900 mb-2">Últimas presenças/faltas</div>
-                @if($ultimasFrequencias->isEmpty())
-                    <div class="text-sm text-gray-600">Sem registros de frequência para este contexto.</div>
-                @else
-                    <div class="overflow-hidden rounded-xl border border-gray-200">
-                        <table class="min-w-full text-sm">
-                            <thead class="bg-gray-50 text-gray-600">
-                                <tr>
-                                    <th class="px-4 py-2 text-left">Data</th>
-                                    <th class="px-4 py-2 text-left">Situação</th>
-                                    <th class="px-4 py-2 text-left">Obs</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100">
-                                @foreach($ultimasFrequencias as $f)
-                                    <tr>
-                                        <td class="px-4 py-2">{{ \Carbon\Carbon::parse($f->data_aula)->format('d/m/Y') }}</td>
-                                        <td class="px-4 py-2">
-                                            <x-badge color="{{ $f->situacao === 'presente' ? 'green' : ($f->situacao === 'falta' ? 'red' : 'gray') }}">
-                                                {{ ucfirst($f->situacao) }}
-                                            </x-badge>
-                                        </td>
-                                        <td class="px-4 py-2 text-gray-600">{{ $f->observacao ?? '—' }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
                     </div>
                 @endif
             </div>

@@ -8,6 +8,7 @@ use App\Http\Controllers\Comunicacao\AvisoController;
 use App\Http\Controllers\Escola\{DocumentoEscolaController, FrequenciaEscolaController, NotaEscolaController};
 use App\Http\Controllers\Professor\{
     AlunosProfessorController,
+    AnotacoesProfessorController,
     AvaliacoesProfessorController,
     AulasProfessorController,
     ContextoProfessorController,
@@ -207,6 +208,9 @@ Route::middleware('auth')->group(function () {
         Route::get('notas-bimestre/{notaBimestre}/edit', [NotasBimestreProfessorController::class, 'edit'])->name('notas-bimestre.edit');
         Route::put('notas-bimestre/{notaBimestre}', [NotasBimestreProfessorController::class, 'update'])->name('notas-bimestre.update');
 
+        Route::get('avaliacoes/{avaliacao}', [AvaliacoesProfessorController::class, 'show'])
+            ->whereNumber('avaliacao')
+            ->name('avaliacoes.show');
         Route::resource('avaliacoes', AvaliacoesProfessorController::class)
             ->except(['show'])
             ->parameters(['avaliacoes' => 'avaliacao']);
@@ -224,14 +228,17 @@ Route::middleware('auth')->group(function () {
             ->except(['show'])
             ->parameters(['planos' => 'planoAula']);
         Route::resource('materiais', MateriaisProfessorController::class)
-            ->except(['show'])
             ->parameters(['materiais' => 'materialDidatico']);
+        Route::get('materiais/{materialDidatico}/download', [MateriaisProfessorController::class, 'download'])->name('materiais.download');
         Route::resource('tarefas', TarefasProfessorController::class)->except(['show']);
 
         Route::get('alunos', [AlunosProfessorController::class, 'index'])->name('alunos.index');
         Route::get('alunos/matriculas/{matricula}', [AlunosProfessorController::class, 'show'])->name('alunos.show');
         Route::post('alunos/matriculas/{matricula}/media-manual', [AlunosProfessorController::class, 'salvarMediaManual'])->name('alunos.media-manual.salvar');
         Route::post('alunos/matriculas/{matricula}/tarefas', [AlunosProfessorController::class, 'salvarTarefaRegistro'])->name('alunos.tarefas.salvar');
+
+        Route::resource('anotacoes', AnotacoesProfessorController::class)
+            ->parameters(['anotacoes' => 'anotacaoProfessor']);
     });
 
     Route::get('/relatorios', fn() => view('em-construcao', ['titulo' => 'Relatórios']))->name('relatorios.index');

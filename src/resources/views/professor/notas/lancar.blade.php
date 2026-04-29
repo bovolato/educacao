@@ -32,31 +32,44 @@
     <form method="POST" action="{{ route('professor.notas.salvar', $avaliacao) }}">
         @csrf
         <div class="rounded-2xl border border-gray-200 bg-white overflow-hidden">
-            <table class="min-w-full text-sm">
-                <thead class="bg-gray-50 text-left text-gray-600">
-                    <tr>
-                        <th class="px-5 py-3">Aluno</th>
-                        <th class="px-5 py-3">Nota</th>
-                        <th class="px-5 py-3">Falta</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100" id="tabelaNotas">
+            <div class="overflow-x-auto">
+                <div class="bg-gray-50 px-5 py-3 text-left text-sm text-gray-600 min-w-[1100px]">
+                    <div class="flex items-center gap-3">
+                        <div class="w-64">Aluno</div>
+                        <div class="w-32">Nota</div>
+                        <div class="w-20 text-center">Falta</div>
+                        <div class="flex-1">Observação</div>
+                    </div>
+                </div>
+
+                <div class="divide-y divide-gray-100 min-w-[1100px]" id="tabelaNotas">
                     @foreach($matriculas as $i => $mat)
                         @php $n = $notasPorMatricula->get($mat->id); @endphp
-                        <tr data-aluno="{{ strtolower($mat->aluno?->pessoa?->nome ?? '') }}">
-                            <td class="px-5 py-3 font-medium text-gray-900">{{ $mat->aluno?->pessoa?->nome ?? '—' }}</td>
-                            <td class="px-5 py-3">
+                        <div class="flex items-center gap-3 px-5 py-4" data-aluno="{{ strtolower($mat->aluno?->pessoa?->nome ?? '') }}">
+                            <div class="w-64 font-medium text-gray-900 truncate">{{ $mat->aluno?->pessoa?->nome ?? '—' }}</div>
+
+                            <div class="w-32">
                                 <input type="hidden" name="notas[{{ $i }}][matricula_id]" value="{{ $mat->id }}">
-                                <input type="number" step="0.1" name="notas[{{ $i }}][nota]" value="{{ old('notas.'.$i.'.nota', $n?->nota) }}" class="w-24 rounded-lg border-gray-300 text-sm">
-                            </td>
-                            <td class="px-5 py-3">
+                                <input type="number" step="0.1" name="notas[{{ $i }}][nota]" value="{{ old('notas.'.$i.'.nota', $n?->nota) }}"
+                                    class="w-24 rounded-lg border-gray-300 text-sm">
+                            </div>
+
+                            <div class="w-20 flex justify-center">
                                 <input type="hidden" name="notas[{{ $i }}][falta_na_avaliacao]" value="0">
-                                <input type="checkbox" name="notas[{{ $i }}][falta_na_avaliacao]" value="1" @checked(old('notas.'.$i.'.falta_na_avaliacao', $n?->falta_na_avaliacao))>
-                            </td>
-                        </tr>
+                                <input type="checkbox" name="notas[{{ $i }}][falta_na_avaliacao]" value="1"
+                                    class="h-4 w-4"
+                                    @checked(old('notas.'.$i.'.falta_na_avaliacao', $n?->falta_na_avaliacao))>
+                            </div>
+
+                            <div class="flex-1">
+                                <textarea name="notas[{{ $i }}][observacao]" rows="2"
+                                    placeholder="Obs…"
+                                    class="w-full rounded-lg border-gray-300 text-sm">{{ old('notas.'.$i.'.observacao', $n?->observacao) }}</textarea>
+                            </div>
+                        </div>
                     @endforeach
-                </tbody>
-            </table>
+                </div>
+            </div>
         </div>
         <div class="flex justify-end mt-6">
             <x-action-button type="submit">Salvar notas</x-action-button>
@@ -72,7 +85,7 @@
 
             function apply() {
                 const term = (input.value || '').trim().toLowerCase();
-                const rows = tbody.querySelectorAll('tr[data-aluno]');
+                const rows = tbody.querySelectorAll('[data-aluno]');
                 rows.forEach(r => {
                     const name = r.getAttribute('data-aluno') || '';
                     r.style.display = !term || name.includes(term) ? '' : 'none';

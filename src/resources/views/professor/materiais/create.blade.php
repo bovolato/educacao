@@ -1,7 +1,7 @@
 <x-sigem-layout title="Novo material">
     <x-page-header title="Novo material" :back-route="route('professor.materiais.index')" back-label="Lista"/>
 
-    <form method="POST" action="{{ route('professor.materiais.store') }}" class="max-w-2xl space-y-5">
+    <form method="POST" action="{{ route('professor.materiais.store') }}" class="max-w-2xl space-y-5" enctype="multipart/form-data">
         @csrf
         @if(!empty($turma_id))
             <input type="hidden" name="turma_id" value="{{ $turma_id }}">
@@ -36,8 +36,8 @@
         <x-form-field label="Link" name="link">
             <input type="url" name="link" value="{{ old('link') }}" placeholder="https://..." class="w-full rounded-xl border-gray-300 text-sm">
         </x-form-field>
-        <x-form-field label="Arquivo (caminho / nome)" name="arquivo" hint="Upload pode ser adicionado depois">
-            <input type="text" name="arquivo" value="{{ old('arquivo') }}" class="w-full rounded-xl border-gray-300 text-sm">
+        <x-form-field label="Arquivo" name="arquivo" hint="Opcional: envie um arquivo (PDF, imagem, doc, etc.).">
+            <input type="file" name="arquivo" class="w-full rounded-xl border-gray-300 text-sm bg-white">
         </x-form-field>
         <div class="flex items-center gap-2">
             <input type="hidden" name="visivel_aluno" value="0">

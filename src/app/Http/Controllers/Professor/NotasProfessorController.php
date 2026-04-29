@@ -89,6 +89,7 @@ class NotasProfessorController extends Controller
             'notas.*.matricula_id'    => 'required|exists:matriculas,id',
             'notas.*.nota'           => 'nullable|numeric|min:0|max:1000',
             'notas.*.falta_na_avaliacao' => 'nullable|boolean',
+            'notas.*.observacao'      => 'nullable|string|max:1000',
         ]);
 
         foreach ($request->input('notas', []) as $row) {

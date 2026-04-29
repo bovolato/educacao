@@ -177,6 +177,7 @@ class FrequenciasBimestreProfessorController extends Controller
                     'presencas' => 0,
                     'faltas' => 0,
                     'faltas_justificadas' => 0,
+                    'atrasos' => 0,
                 ]
             );
         }
@@ -215,6 +216,7 @@ class FrequenciasBimestreProfessorController extends Controller
             'itens.*.presencas' => 'required|integer|min:0|max:999',
             'itens.*.faltas' => 'required|integer|min:0|max:999',
             'itens.*.faltas_justificadas' => 'required|integer|min:0|max:999',
+            'itens.*.atrasos' => 'required|integer|min:0|max:999',
             'itens.*.observacao' => 'nullable|string|max:2000',
         ]);
 
@@ -226,6 +228,7 @@ class FrequenciasBimestreProfessorController extends Controller
                 'presencas' => (int) $row['presencas'],
                 'faltas' => (int) $row['faltas'],
                 'faltas_justificadas' => (int) $row['faltas_justificadas'],
+                'atrasos' => (int) $row['atrasos'],
                 'observacao' => $row['observacao'] ?? null,
             ]);
         }

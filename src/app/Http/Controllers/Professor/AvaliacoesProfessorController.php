@@ -128,6 +128,15 @@ class AvaliacoesProfessorController extends Controller
         return view('professor.avaliacoes.edit', compact('avaliacao'));
     }
 
+    public function show(Avaliacao $avaliacao)
+    {
+        $prof = auth()->user()->professor;
+        abort_unless((int) $avaliacao->professor_id === (int) $prof->id, 403);
+        $avaliacao->load(['turma', 'disciplina']);
+
+        return view('professor.avaliacoes.show', compact('avaliacao'));
+    }
+
     public function update(Request $request, Avaliacao $avaliacao)
     {
         $prof = auth()->user()->professor;

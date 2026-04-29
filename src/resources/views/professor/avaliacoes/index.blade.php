@@ -58,6 +58,8 @@
                                 <td class="px-5 py-3">{{ $av->periodo ?? '—' }}</td>
                                 <td class="px-5 py-3 text-right whitespace-nowrap">
                                     <div class="inline-flex items-center gap-2">
+                                        <a href="{{ route('professor.avaliacoes.show', $av) }}"
+                                            class="px-3 py-1.5 rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100">Ver</a>
                                         <a href="{{ route('professor.notas.lancar', $av) }}"
                                             class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">Notas</a>
                                         <a href="{{ route('professor.avaliacoes.edit', $av) }}"

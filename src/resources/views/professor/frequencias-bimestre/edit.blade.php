@@ -38,6 +38,7 @@
                         <th class="px-5 py-3">Presenças</th>
                         <th class="px-5 py-3">Faltas</th>
                         <th class="px-5 py-3">Justificadas</th>
+                        <th class="px-5 py-3">Atrasos</th>
                         <th class="px-5 py-3">Observação</th>
                     </tr>
                 </thead>
@@ -58,6 +59,10 @@
                             <td class="px-5 py-3">
                                 <input type="number" min="0" max="999" name="itens[{{ $i }}][faltas_justificadas]" value="{{ old("itens.$i.faltas_justificadas", $item->faltas_justificadas) }}"
                                     class="w-28 rounded-xl border-gray-300 text-sm" />
+                            </td>
+                            <td class="px-5 py-3">
+                                <input type="number" min="0" max="999" name="itens[{{ $i }}][atrasos]" value="{{ old("itens.$i.atrasos", $item->atrasos ?? 0) }}"
+                                    class="w-24 rounded-xl border-gray-300 text-sm" />
                             </td>
                             <td class="px-5 py-3">
                                 <input type="text" name="itens[{{ $i }}][observacao]" value="{{ old("itens.$i.observacao", $item->observacao) }}"

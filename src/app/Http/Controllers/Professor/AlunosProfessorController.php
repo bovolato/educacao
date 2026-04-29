@@ -3,8 +3,7 @@
 namespace App\Http\Controllers\Professor;
 
 use App\Http\Controllers\Controller;
-use App\Models\Academico\{Avaliacao, Boletim, Disciplina, Frequencia, Matricula, Nota, NotaBimestre, NotaBimestreItem, Tarefa, TarefaRegistroAluno, Turma};
-use App\Models\Comunicacao\Aviso;
+use App\Models\Academico\{AnotacaoProfessor, Avaliacao, Boletim, Disciplina, Frequencia, FrequenciaBimestre, FrequenciaBimestreItem, Matricula, Nota, NotaBimestre, NotaBimestreItem, Tarefa, TarefaRegistroAluno, Turma};
 use App\Services\EscopoAcesso;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -114,11 +113,40 @@ class AlunosProfessorController extends Controller
             ->get()
             ->keyBy('id');
 
-        // Frequência (por aula). Polivalente: por turma; não-polivalente: soma nas disciplinas do professor na turma.
+        // Frequência: se existir lista do bimestre, ela vira a fonte da verdade.
+        // Polivalente: 1 lista por turma; não-polivalente: pode haver listas por disciplina (somamos no resumão).
         $didFreqs = $turma->polivalente ? collect([$this->disciplinaPolivalenteIdParaTurma($turma)]) : $disciplinaIds;
         $freqResumo = null;
         $ultimasFrequencias = collect();
+        $usouFrequenciaBimestre = false;
+
         if ($didFreqs->isNotEmpty()) {
+            $freqBimListas = FrequenciaBimestre::query()
+                ->where('professor_id', $prof->id)
+                ->where('turma_id', $turma->id)
+                ->where('periodo', $periodoAtual)
+                ->whereIn('disciplina_id', $didFreqs)
+                ->pluck('id')
+                ->map(fn ($v) => (int) $v);
+
+            if ($freqBimListas->isNotEmpty()) {
+                $itensBim = FrequenciaBimestreItem::query()
+                    ->whereIn('frequencia_bimestre_id', $freqBimListas)
+                    ->where('matricula_id', $matricula->id)
+                    ->get();
+
+                if ($itensBim->isNotEmpty()) {
+                    $usouFrequenciaBimestre = true;
+                    $freqResumo = (object) [
+                        'presentes' => (int) $itensBim->sum('presencas'),
+                        'faltas' => (int) $itensBim->sum('faltas'),
+                        'justificadas' => (int) $itensBim->sum('faltas_justificadas'),
+                        'atrasos' => (int) $itensBim->sum('atrasos'),
+                    ];
+                }
+            }
+
+            // Fallback legado: soma por aula.
             $freqBase = Frequencia::query()
                 ->join('aulas', 'frequencias.aula_id', '=', 'aulas.id')
                 ->where('frequencias.matricula_id', $matricula->id)
@@ -129,19 +157,21 @@ class AlunosProfessorController extends Controller
                 ->orderByDesc('aulas.data_aula');
 
             // Query agregada precisa selecionar apenas colunas agregadas (compatível com ONLY_FULL_GROUP_BY).
-            $freqResumo = Frequencia::query()
-                ->join('aulas', 'frequencias.aula_id', '=', 'aulas.id')
-                ->where('frequencias.matricula_id', $matricula->id)
-                ->where('aulas.turma_id', $turma->id)
-                ->whereIn('aulas.disciplina_id', $didFreqs)
-                ->where('aulas.periodo', $periodoAtual)
-                ->selectRaw("SUM(CASE WHEN frequencias.situacao='presente' THEN 1 ELSE 0 END) as presentes")
-                ->selectRaw("SUM(CASE WHEN frequencias.situacao='falta' THEN 1 ELSE 0 END) as faltas")
-                ->selectRaw("SUM(CASE WHEN frequencias.situacao='justificada' THEN 1 ELSE 0 END) as justificadas")
-                ->selectRaw("SUM(CASE WHEN frequencias.situacao='atraso' THEN 1 ELSE 0 END) as atrasos")
-                ->first();
+            if (! $usouFrequenciaBimestre) {
+                $freqResumo = Frequencia::query()
+                    ->join('aulas', 'frequencias.aula_id', '=', 'aulas.id')
+                    ->where('frequencias.matricula_id', $matricula->id)
+                    ->where('aulas.turma_id', $turma->id)
+                    ->whereIn('aulas.disciplina_id', $didFreqs)
+                    ->where('aulas.periodo', $periodoAtual)
+                    ->selectRaw("SUM(CASE WHEN frequencias.situacao='presente' THEN 1 ELSE 0 END) as presentes")
+                    ->selectRaw("SUM(CASE WHEN frequencias.situacao='falta' THEN 1 ELSE 0 END) as faltas")
+                    ->selectRaw("SUM(CASE WHEN frequencias.situacao='justificada' THEN 1 ELSE 0 END) as justificadas")
+                    ->selectRaw("SUM(CASE WHEN frequencias.situacao='atraso' THEN 1 ELSE 0 END) as atrasos")
+                    ->first();
 
-            $ultimasFrequencias = $freqBase->limit(20)->get();
+                $ultimasFrequencias = $freqBase->limit(20)->get();
+            }
         }
 
         // Avaliações e notas (todas as disciplinas do professor na turma).
@@ -281,13 +311,12 @@ class AlunosProfessorController extends Controller
             ->get()
             ->keyBy('tarefa_id');
 
-        // "Recados" (avisos para a turma)
-        $avisosTurma = Aviso::query()
-            ->join('aviso_destinatarios as ad', 'ad.aviso_id', '=', 'avisos.id')
-            ->where('ad.turma_id', $turma->id)
-            ->orderByDesc('avisos.publicado_em')
-            ->orderByDesc('avisos.id')
-            ->select('avisos.*')
+        // Anotações do professor sobre o aluno (por bimestre, somente autor).
+        $anotacoesAluno = AnotacaoProfessor::query()
+            ->where('professor_id', $prof->id)
+            ->where('matricula_id', $matricula->id)
+            ->where('periodo', $periodoSelecionado)
+            ->orderByDesc('id')
             ->limit(10)
             ->get();
 
@@ -311,7 +340,7 @@ class AlunosProfessorController extends Controller
             'boletins',
             'tarefas',
             'tarefasRegistro',
-            'avisosTurma'
+            'anotacoesAluno'
         ));
     }
 
@@ -358,7 +387,7 @@ class AlunosProfessorController extends Controller
 
         $data = $request->validate([
             'tarefa_id'   => 'required|exists:tarefas,id',
-            'status'      => 'required|in:pendente,fez,nao_fez,entregue,nao_entregue',
+            'status'      => 'required|in:pendente,entregue,nao_entregue',
             'observacao'  => 'nullable|string|max:1000',
             'disciplina_id' => 'nullable|integer',
             'periodo'       => 'nullable|string',

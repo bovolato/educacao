@@ -7,6 +7,7 @@ use App\Models\Academico\MaterialDidatico;
 use App\Services\EscopoAcesso;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class MateriaisProfessorController extends Controller
 {
@@ -100,15 +101,21 @@ class MateriaisProfessorController extends Controller
             'titulo'         => 'required|string|max:180',
             'descricao'      => 'nullable|string',
             'link'           => 'nullable|url|max:500',
-            'arquivo'        => 'nullable|string|max:255',
+            'arquivo'        => 'nullable|file|max:20480', // 20MB
             'visivel_aluno'  => 'nullable|boolean',
         ]);
         abort_unless(app(EscopoAcesso::class)->professorLecaDisciplinaNaTurma($prof, (int) $data['turma_id'], (int) $data['disciplina_id']), 403);
+
+        $path = null;
+        if ($request->hasFile('arquivo')) {
+            $path = $request->file('arquivo')->store('materiais');
+        }
 
         MaterialDidatico::create(array_merge($data, [
             'professor_id'  => $prof->id,
             'visivel_aluno' => $request->boolean('visivel_aluno', true),
             'periodo'       => $periodoAtual,
+            'arquivo'       => $path,
         ]));
 
         return redirect()->route('professor.materiais.index')->with('success', 'Material cadastrado.');
@@ -122,6 +129,15 @@ class MateriaisProfessorController extends Controller
         return view('professor.materiais.edit', compact('materialDidatico'));
     }
 
+    public function show(MaterialDidatico $materialDidatico)
+    {
+        $prof = auth()->user()->professor;
+        abort_unless((int) $materialDidatico->professor_id === (int) $prof->id, 403);
+        $materialDidatico->load(['turma', 'disciplina']);
+
+        return view('professor.materiais.show', compact('materialDidatico'));
+    }
+
     public function update(Request $request, MaterialDidatico $materialDidatico)
     {
         $prof = auth()->user()->professor;
@@ -131,14 +147,40 @@ class MateriaisProfessorController extends Controller
             'titulo'        => 'required|string|max:180',
             'descricao'     => 'nullable|string',
             'link'          => 'nullable|url|max:500',
-            'arquivo'       => 'nullable|string|max:255',
+            'arquivo'       => 'nullable|file|max:20480', // 20MB
+            'remover_arquivo' => 'nullable|boolean',
             'visivel_aluno' => 'nullable|boolean',
         ]);
+
+        $newPath = $materialDidatico->arquivo;
+        if ($request->boolean('remover_arquivo') && $newPath) {
+            Storage::delete($newPath);
+            $newPath = null;
+        }
+        if ($request->hasFile('arquivo')) {
+            if ($newPath) {
+                Storage::delete($newPath);
+            }
+            $newPath = $request->file('arquivo')->store('materiais');
+        }
+
         $materialDidatico->update(array_merge($data, [
             'visivel_aluno' => $request->boolean('visivel_aluno', true),
+            'arquivo' => $newPath,
         ]));
 
         return redirect()->route('professor.materiais.index')->with('success', 'Material atualizado.');
+    }
+
+    public function download(MaterialDidatico $materialDidatico)
+    {
+        $prof = auth()->user()->professor;
+        abort_unless((int) $materialDidatico->professor_id === (int) $prof->id, 403);
+        abort_unless((bool) $materialDidatico->arquivo, 404);
+        abort_unless(Storage::exists($materialDidatico->arquivo), 404);
+
+        $filename = basename((string) $materialDidatico->arquivo);
+        return Storage::download($materialDidatico->arquivo, $filename);
     }
 
     public function destroy(MaterialDidatico $materialDidatico)

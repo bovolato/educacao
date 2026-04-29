@@ -39,14 +39,22 @@
                         <td class="px-5 py-3 text-gray-600">{{ $m->disciplina?->nome ?? '—' }}</td>
                         <td class="px-5 py-3">{{ $m->visivel_aluno ? 'Sim' : 'Não' }}</td>
                         <td class="px-5 py-3">
-                            @if($m->link)
-                                <a href="{{ $m->link }}" target="_blank" class="text-indigo-600 hover:underline">Abrir</a>
-                            @else
-                                <span class="text-gray-400">—</span>
-                            @endif
+                            <div class="flex flex-wrap items-center gap-3">
+                                @if($m->link)
+                                    <a href="{{ $m->link }}" target="_blank" class="text-indigo-600 hover:underline">Abrir link</a>
+                                @endif
+                                @if($m->arquivo)
+                                    <a href="{{ route('professor.materiais.download', $m) }}" class="text-indigo-600 hover:underline">Baixar arquivo</a>
+                                @endif
+                                @if(! $m->link && ! $m->arquivo)
+                                    <span class="text-gray-400">—</span>
+                                @endif
+                            </div>
                         </td>
                         <td class="px-5 py-3 text-right whitespace-nowrap">
                             <div class="inline-flex items-center gap-2">
+                                <a href="{{ route('professor.materiais.show', $m) }}"
+                                    class="px-3 py-1.5 rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100">Ver</a>
                                 <a href="{{ route('professor.materiais.edit', $m) }}"
                                     class="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100">Editar</a>
                                 <form action="{{ route('professor.materiais.destroy', $m) }}" method="POST" class="inline" onsubmit="return confirm('Remover?');">

@@ -2,29 +2,34 @@
 
 namespace App\Models\Academico;
 
+use App\Models\Pessoas\Professor;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class FrequenciaBimestreItem extends Model
+class AnotacaoProfessor extends Model
 {
     use HasFactory;
 
-    protected $table = 'frequencias_bimestre_itens';
+    protected $table = 'anotacoes_professor';
 
     protected $fillable = [
-        'frequencia_bimestre_id',
+        'professor_id',
+        'turma_id',
         'matricula_id',
         'aluno_id',
-        'presencas',
-        'faltas',
-        'faltas_justificadas',
-        'atrasos',
-        'observacao',
+        'periodo',
+        'assunto',
+        'texto',
     ];
 
-    public function frequenciaBimestre()
+    public function professor()
     {
-        return $this->belongsTo(FrequenciaBimestre::class, 'frequencia_bimestre_id');
+        return $this->belongsTo(Professor::class);
+    }
+
+    public function turma()
+    {
+        return $this->belongsTo(Turma::class);
     }
 
     public function matricula()

@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Pessoas;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pessoas\AlunoRequest;
-use App\Models\Pessoas\{Aluno, Pessoa, PessoaContato, PessoaEndereco};
+use App\Models\Academico\{AnotacaoProfessor, Aula, Avaliacao, Frequencia, Nota};
+use App\Models\Pessoas\{Aluno, Pessoa, PessoaContato, PessoaEndereco, Responsavel};
 use App\Models\Institucional\Escola;
 use App\Services\EscopoAcesso;
 use Illuminate\Http\Request;
@@ -132,7 +133,7 @@ class AlunoController extends Controller
                 ]);
             }
 
-            Aluno::create([
+            $aluno = Aluno::create([
                 'pessoa_id'             => $pessoa->id,
                 'cidade_vinculo'        => $request->cidade_vinculo,
                 'ra'                    => $request->ra,
@@ -143,12 +144,38 @@ class AlunoController extends Controller
                 'usa_transporte'        => $request->boolean('usa_transporte'),
                 'ativo'                 => true,
             ]);
+
+            // Responsável (simples): nome + telefone
+            if ($request->filled('responsavel_nome')) {
+                $pessoaResp = Pessoa::create([
+                    'nome'  => $request->responsavel_nome,
+                    'ativo' => true,
+                ]);
+
+                if ($request->filled('responsavel_telefone')) {
+                    PessoaContato::create([
+                        'pessoa_id' => $pessoaResp->id,
+                        'tipo'      => 'celular',
+                        'valor'     => $request->responsavel_telefone,
+                        'principal' => true,
+                    ]);
+                }
+
+                $resp = Responsavel::create([
+                    'pessoa_id' => $pessoaResp->id,
+                ]);
+
+                $aluno->responsaveis()->attach($resp->id, [
+                    'responsavel_principal' => true,
+                    'recebe_boletim'        => true,
+                ]);
+            }
         });
 
         return redirect()->route('pessoas.alunos.index')->with('success', 'Aluno cadastrado com sucesso!');
     }
 
-    public function show(Aluno $aluno)
+    public function show(Request $request, Aluno $aluno)
     {
         $this->authorize('view', $aluno);
 
@@ -161,14 +188,81 @@ class AlunoController extends Controller
             'matriculas.escola',
         ]);
 
-        return view('pessoas.alunos.show', compact('aluno'));
+        $periodos = collect(['1B','2B','3B','4B']);
+        $periodoSelecionado = $request->input('periodo', '1B');
+
+        $matriculasAtivas = $aluno->matriculas
+            ->where('situacao', 'ativa')
+            ->sortByDesc('data_matricula')
+            ->values();
+
+        $matriculaSelecionada = null;
+        if ($request->filled('matricula_id')) {
+            $matriculaSelecionada = $aluno->matriculas->firstWhere('id', (int) $request->matricula_id);
+        }
+        if (! $matriculaSelecionada) {
+            $matriculaSelecionada = $matriculasAtivas->first() ?? $aluno->matriculas->sortByDesc('data_matricula')->first();
+        }
+
+        $freqResumo = null;
+        $avaliacoes = collect();
+        $notasPorAvaliacao = collect();
+        $anotacoesProfessor = collect();
+
+        if ($matriculaSelecionada && $matriculaSelecionada->turma_id) {
+            $freqResumo = Frequencia::query()
+                ->join('aulas', 'frequencias.aula_id', '=', 'aulas.id')
+                ->where('frequencias.matricula_id', $matriculaSelecionada->id)
+                ->where('aulas.turma_id', $matriculaSelecionada->turma_id)
+                ->where('aulas.periodo', $periodoSelecionado)
+                ->selectRaw("SUM(CASE WHEN frequencias.situacao='presente' THEN 1 ELSE 0 END) as presentes")
+                ->selectRaw("SUM(CASE WHEN frequencias.situacao='falta' THEN 1 ELSE 0 END) as faltas")
+                ->selectRaw("SUM(CASE WHEN frequencias.situacao='justificada' THEN 1 ELSE 0 END) as justificadas")
+                ->selectRaw("SUM(CASE WHEN frequencias.situacao='atraso' THEN 1 ELSE 0 END) as atrasos")
+                ->first();
+
+            $avaliacoes = Avaliacao::query()
+                ->where('turma_id', $matriculaSelecionada->turma_id)
+                ->where('periodo', $periodoSelecionado)
+                ->with(['disciplina', 'professor.pessoa'])
+                ->orderByDesc('data_avaliacao')
+                ->orderByDesc('id')
+                ->limit(50)
+                ->get();
+
+            $notasPorAvaliacao = Nota::query()
+                ->whereIn('avaliacao_id', $avaliacoes->pluck('id'))
+                ->where('matricula_id', $matriculaSelecionada->id)
+                ->get()
+                ->keyBy('avaliacao_id');
+
+            $anotacoesProfessor = AnotacaoProfessor::query()
+                ->where('matricula_id', $matriculaSelecionada->id)
+                ->where('periodo', $periodoSelecionado)
+                ->with('professor.pessoa')
+                ->orderByDesc('id')
+                ->limit(30)
+                ->get();
+        }
+
+        return view('pessoas.alunos.show', compact(
+            'aluno',
+            'periodos',
+            'periodoSelecionado',
+            'matriculasAtivas',
+            'matriculaSelecionada',
+            'freqResumo',
+            'avaliacoes',
+            'notasPorAvaliacao',
+            'anotacoesProfessor',
+        ));
     }
 
     public function edit(Aluno $aluno)
     {
         $this->authorize('update', $aluno);
 
-        $aluno->loadMissing(['pessoa.contatos', 'pessoa.enderecos']);
+        $aluno->loadMissing(['pessoa.contatos', 'pessoa.enderecos', 'responsaveis.pessoa.contatos']);
         if (! $aluno->pessoa) {
             return redirect()
                 ->route('pessoas.alunos.index')
@@ -201,7 +295,7 @@ class AlunoController extends Controller
             $request->merge(['cidade_vinculo' => $esc->cidade]);
         }
 
-        $aluno->loadMissing('pessoa');
+        $aluno->loadMissing(['pessoa', 'responsaveis.pessoa.contatos']);
         if (! $aluno->pessoa) {
             return redirect()
                 ->route('pessoas.alunos.index')
@@ -257,6 +351,34 @@ class AlunoController extends Controller
                         'cep'        => $request->cep,
                     ]
                 );
+            }
+
+            // Responsável (simples): atualiza o principal; se não existir e vier nome, cria.
+            if ($request->filled('responsavel_nome')) {
+                $respPrincipal = $aluno->responsaveis()->wherePivot('responsavel_principal', true)->first()
+                    ?? $aluno->responsaveis()->first();
+
+                if (! $respPrincipal) {
+                    $pessoaResp = Pessoa::create([
+                        'nome'  => $request->responsavel_nome,
+                        'ativo' => true,
+                    ]);
+                    $respPrincipal = Responsavel::create(['pessoa_id' => $pessoaResp->id]);
+                    $aluno->responsaveis()->attach($respPrincipal->id, [
+                        'responsavel_principal' => true,
+                        'recebe_boletim'        => true,
+                    ]);
+                } else {
+                    $respPrincipal->loadMissing('pessoa.contatos');
+                    $respPrincipal->pessoa?->update(['nome' => $request->responsavel_nome]);
+                }
+
+                if ($request->filled('responsavel_telefone') && $respPrincipal?->pessoa) {
+                    $respPrincipal->pessoa->contatos()->updateOrCreate(
+                        ['tipo' => 'celular'],
+                        ['valor' => $request->responsavel_telefone, 'principal' => true]
+                    );
+                }
             }
         });
 

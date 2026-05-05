@@ -10,6 +10,14 @@
             $contatoCelular = $pessoaAl ? $pessoaAl->contatos->firstWhere('tipo', 'celular') : null;
             $contatoEmail   = $pessoaAl ? $pessoaAl->contatos->firstWhere('tipo', 'email') : null;
             $endereco       = $pessoaAl ? ($pessoaAl->enderecos->firstWhere('principal', true) ?? $pessoaAl->enderecos->first()) : null;
+            $respPrincipal  = $aluno->responsaveis->firstWhere('pivot.responsavel_principal', true) ?? $aluno->responsaveis->first();
+            $respPessoa     = $respPrincipal?->pessoa;
+            $respContato    = $respPessoa
+                ? ($respPessoa->contatos->firstWhere('principal', true)
+                    ?? $respPessoa->contatos->firstWhere('tipo', 'celular')
+                    ?? $respPessoa->contatos->firstWhere('tipo', 'whatsapp')
+                    ?? $respPessoa->contatos->firstWhere('tipo', 'fixo'))
+                : null;
         @endphp
 
         <x-form-card title="Dados Pessoais">
@@ -98,6 +106,19 @@
                 </x-form-field>
                 <x-form-field label="E-mail" name="email_contato">
                     <input type="email" name="email_contato" value="{{ old('email_contato', $contatoEmail?->valor) }}"
+                        class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                </x-form-field>
+            </div>
+        </x-form-card>
+
+        <x-form-card title="Responsável">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <x-form-field label="Nome completo do responsável" name="responsavel_nome">
+                    <input type="text" name="responsavel_nome" value="{{ old('responsavel_nome', $respPessoa?->nome) }}"
+                        class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                </x-form-field>
+                <x-form-field label="Telefone do responsável" name="responsavel_telefone">
+                    <input type="text" name="responsavel_telefone" value="{{ old('responsavel_telefone', $respContato?->valor) }}" placeholder="(00) 00000-0000"
                         class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
                 </x-form-field>
             </div>

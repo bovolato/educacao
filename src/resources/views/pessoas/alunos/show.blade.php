@@ -116,6 +116,122 @@
                     </div>
                 @endif
             </div>
+
+            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div>
+                        <h3 class="font-semibold text-gray-800">Painel pedagógico</h3>
+                        <p class="text-xs text-gray-500 mt-0.5">Frequência e notas por bimestre (gestão).</p>
+                    </div>
+                    <form method="GET" class="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <label class="text-xs text-gray-500">Matrícula</label>
+                        <select name="matricula_id" class="rounded-xl border-gray-300 text-sm" onchange="this.form.submit()">
+                            @foreach($matriculasAtivas as $m)
+                                <option value="{{ $m->id }}" @selected(($matriculaSelecionada?->id ?? null) === $m->id)>
+                                    {{ $m->turma?->nome ?? 'Sem turma' }} · {{ $m->escola?->nome ?? '—' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <label class="text-xs text-gray-500 sm:ml-2">Bimestre</label>
+                        <select name="periodo" class="rounded-xl border-gray-300 text-sm" onchange="this.form.submit()">
+                            @foreach($periodos as $p)
+                                <option value="{{ $p }}" @selected($p === $periodoSelecionado)>{{ $p }}</option>
+                            @endforeach
+                        </select>
+                    </form>
+                </div>
+
+                @if(! $matriculaSelecionada)
+                    <p class="px-6 py-8 text-center text-gray-500 text-sm">Selecione uma matrícula para ver dados pedagógicos.</p>
+                @else
+                    <div class="p-6 space-y-6">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            @foreach([
+                                ['Presentes', (int) ($freqResumo?->presentes ?? 0), 'green'],
+                                ['Faltas', (int) ($freqResumo?->faltas ?? 0), 'red'],
+                                ['Justificadas', (int) ($freqResumo?->justificadas ?? 0), 'yellow'],
+                                ['Atrasos', (int) ($freqResumo?->atrasos ?? 0), 'violet'],
+                            ] as [$label, $valor, $cor])
+                                <div class="bg-white rounded-2xl border border-gray-200 p-4 text-center">
+                                    <p class="text-xs text-gray-500 uppercase mb-1">{{ $label }}</p>
+                                    <p class="text-lg font-bold text-gray-800">{{ $valor }}</p>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <div class="rounded-2xl border border-gray-200 overflow-hidden">
+                            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                                <h4 class="font-semibold text-gray-800">Avaliações e notas</h4>
+                                <span class="text-xs text-gray-500">{{ $avaliacoes->count() }} avaliação(ões)</span>
+                            </div>
+                            @if($avaliacoes->isEmpty())
+                                <p class="px-5 py-8 text-center text-gray-500 text-sm">Nenhuma avaliação encontrada neste bimestre.</p>
+                            @else
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-[900px] w-full text-sm">
+                                        <thead class="bg-gray-50 text-left text-gray-600">
+                                            <tr>
+                                                <th class="px-5 py-3">Data</th>
+                                                <th class="px-5 py-3">Avaliação</th>
+                                                <th class="px-5 py-3">Disciplina</th>
+                                                <th class="px-5 py-3">Professor</th>
+                                                <th class="px-5 py-3">Nota</th>
+                                                <th class="px-5 py-3">Obs.</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100">
+                                            @foreach($avaliacoes as $av)
+                                                @php $n = $notasPorAvaliacao->get($av->id); @endphp
+                                                <tr class="hover:bg-gray-50/80">
+                                                    <td class="px-5 py-3 whitespace-nowrap">{{ $av->data_avaliacao?->format('d/m/Y') ?? '—' }}</td>
+                                                    <td class="px-5 py-3 font-medium text-gray-900">{{ $av->titulo }}</td>
+                                                    <td class="px-5 py-3">{{ $av->disciplina?->nome ?? '—' }}</td>
+                                                    <td class="px-5 py-3">{{ $av->professor?->pessoa?->nome ?? '—' }}</td>
+                                                    <td class="px-5 py-3 whitespace-nowrap">
+                                                        @if($n && $n->falta_na_avaliacao)
+                                                            <x-badge color="red">Falta</x-badge>
+                                                        @else
+                                                            <span class="font-medium">{{ $n?->nota ?? '—' }}</span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="px-5 py-3 text-gray-600">{{ $n?->observacao ?? '—' }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="rounded-2xl border border-gray-200 overflow-hidden">
+                            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                                <h4 class="font-semibold text-gray-800">Anotações dos professores</h4>
+                                <span class="text-xs text-gray-500">{{ $anotacoesProfessor->count() }} anotação(ões)</span>
+                            </div>
+                            @if($anotacoesProfessor->isEmpty())
+                                <p class="px-5 py-8 text-center text-gray-500 text-sm">Nenhuma anotação registrada neste bimestre.</p>
+                            @else
+                                <div class="divide-y divide-gray-100">
+                                    @foreach($anotacoesProfessor as $an)
+                                        <div class="px-5 py-4">
+                                            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-2">
+                                                <div>
+                                                    <p class="text-sm font-semibold text-gray-900">{{ $an->assunto }}</p>
+                                                    <p class="text-xs text-gray-500 mt-0.5">
+                                                        {{ $an->professor?->pessoa?->nome ?? 'Professor' }}
+                                                        · {{ $an->created_at?->format('d/m/Y H:i') ?? '—' }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <p class="text-sm text-gray-700 mt-2 whitespace-pre-line">{{ $an->texto }}</p>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+            </div>
         </div>
 
         <div class="space-y-5">
@@ -148,9 +264,23 @@
                 @else
                     <div class="space-y-2">
                         @foreach($aluno->responsaveis as $resp)
+                            @php
+                                $rp = $resp->pessoa;
+                                $rcont = $rp
+                                    ? ($rp->contatos->firstWhere('principal', true)
+                                        ?? $rp->contatos->firstWhere('tipo', 'celular')
+                                        ?? $rp->contatos->firstWhere('tipo', 'whatsapp')
+                                        ?? $rp->contatos->firstWhere('tipo', 'fixo'))
+                                    : null;
+                            @endphp
                             <div>
                                 <p class="text-sm font-medium text-gray-800">{{ $resp->nome }}</p>
-                                <p class="text-xs text-gray-500">{{ $resp->pivot->grau_parentesco ?? $resp->tipo_responsavel }}</p>
+                                <p class="text-xs text-gray-500">
+                                    {{ $resp->pivot->grau_parentesco ?? $resp->tipo_responsavel ?? 'Tel.: ' }}
+                                    @if($rcont?->valor)
+                                        · {{ $rcont->valor }}
+                                    @endif
+                                </p>
                             </div>
                         @endforeach
                     </div>

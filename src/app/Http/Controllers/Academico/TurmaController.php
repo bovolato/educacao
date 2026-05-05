@@ -4,10 +4,11 @@ namespace App\Http\Controllers\Academico;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Academico\TurmaRequest;
-use App\Models\Academico\{Turma, Disciplina, Matricula};
+use App\Models\Academico\{Aula, Avaliacao, Disciplina, Frequencia, Matricula, Nota, Turma};
 use App\Models\Institucional\{Escola, AnoLetivo, Serie, Turno, Sala};
 use App\Services\EscopoAcesso;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TurmaController extends Controller
 {
@@ -79,11 +80,13 @@ class TurmaController extends Controller
         return redirect()->route('academico.turmas.index')->with('success', 'Turma criada com sucesso!');
     }
 
-    public function show(Turma $turma)
+    public function show(Request $request, Turma $turma)
     {
         $this->authorize('view', $turma);
 
         $turma->load(['escola', 'serie', 'turno', 'anoLetivo', 'sala']);
+        $periodos = collect(['1B','2B','3B','4B']);
+        $periodoSelecionado = $request->input('periodo', '1B');
 
         $matriculasTurma = Matricula::query()
             ->where('turma_id', $turma->id)
@@ -107,11 +110,53 @@ class TurmaController extends Controller
                 $professoresTurma->getCollection()->pluck('pivot.disciplina_id')->unique()->filter()->values()
             )->get()->keyBy('id');
 
+        // Painel pedagógico (gestor): aulas + frequência + avaliações/notas (por bimestre).
+        $aulas = Aula::query()
+            ->where('turma_id', $turma->id)
+            ->where('periodo', $periodoSelecionado)
+            ->with(['disciplina', 'professor.pessoa', 'conteudos'])
+            ->withCount(['frequencias', 'conteudos'])
+            ->orderByDesc('data_aula')
+            ->orderByDesc('id')
+            ->paginate(10, ['*'], 'aulas_page')
+            ->withQueryString();
+
+        $totalMatriculasAtivas = Matricula::query()
+            ->where('turma_id', $turma->id)
+            ->where('situacao', 'ativa')
+            ->count();
+
+        $freqResumoTurma = Frequencia::query()
+            ->join('aulas', 'frequencias.aula_id', '=', 'aulas.id')
+            ->where('aulas.turma_id', $turma->id)
+            ->where('aulas.periodo', $periodoSelecionado)
+            ->selectRaw("SUM(CASE WHEN frequencias.situacao='presente' THEN 1 ELSE 0 END) as presentes")
+            ->selectRaw("SUM(CASE WHEN frequencias.situacao='falta' THEN 1 ELSE 0 END) as faltas")
+            ->selectRaw("SUM(CASE WHEN frequencias.situacao='justificada' THEN 1 ELSE 0 END) as justificadas")
+            ->selectRaw("SUM(CASE WHEN frequencias.situacao='atraso' THEN 1 ELSE 0 END) as atrasos")
+            ->first();
+
+        $avaliacoes = Avaliacao::query()
+            ->where('turma_id', $turma->id)
+            ->where('periodo', $periodoSelecionado)
+            ->with(['disciplina', 'professor.pessoa'])
+            ->withCount('notas')
+            ->orderByDesc('data_avaliacao')
+            ->orderByDesc('id')
+            ->limit(20)
+            ->get();
+
         return view('academico.turmas.show', compact(
             'turma',
             'matriculasTurma',
             'professoresTurma',
-            'disciplinasPorId'
+            'disciplinasPorId',
+            'periodos',
+            'periodoSelecionado',
+            'aulas',
+            'totalMatriculasAtivas',
+            'freqResumoTurma',
+            'avaliacoes',
         ));
     }
 

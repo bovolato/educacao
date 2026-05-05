@@ -113,40 +113,13 @@ class AlunosProfessorController extends Controller
             ->get()
             ->keyBy('id');
 
-        // Frequência: se existir lista do bimestre, ela vira a fonte da verdade.
-        // Polivalente: 1 lista por turma; não-polivalente: pode haver listas por disciplina (somamos no resumão).
+        // Frequência (revertida): fonte da verdade é por aula (tabela frequencias).
+        // Polivalente: usa a disciplina "Polivalente" sentinela; não-polivalente: soma disciplinas do professor na turma.
         $didFreqs = $turma->polivalente ? collect([$this->disciplinaPolivalenteIdParaTurma($turma)]) : $disciplinaIds;
         $freqResumo = null;
         $ultimasFrequencias = collect();
-        $usouFrequenciaBimestre = false;
 
         if ($didFreqs->isNotEmpty()) {
-            $freqBimListas = FrequenciaBimestre::query()
-                ->where('professor_id', $prof->id)
-                ->where('turma_id', $turma->id)
-                ->where('periodo', $periodoAtual)
-                ->whereIn('disciplina_id', $didFreqs)
-                ->pluck('id')
-                ->map(fn ($v) => (int) $v);
-
-            if ($freqBimListas->isNotEmpty()) {
-                $itensBim = FrequenciaBimestreItem::query()
-                    ->whereIn('frequencia_bimestre_id', $freqBimListas)
-                    ->where('matricula_id', $matricula->id)
-                    ->get();
-
-                if ($itensBim->isNotEmpty()) {
-                    $usouFrequenciaBimestre = true;
-                    $freqResumo = (object) [
-                        'presentes' => (int) $itensBim->sum('presencas'),
-                        'faltas' => (int) $itensBim->sum('faltas'),
-                        'justificadas' => (int) $itensBim->sum('faltas_justificadas'),
-                        'atrasos' => (int) $itensBim->sum('atrasos'),
-                    ];
-                }
-            }
-
-            // Fallback legado: soma por aula.
             $freqBase = Frequencia::query()
                 ->join('aulas', 'frequencias.aula_id', '=', 'aulas.id')
                 ->where('frequencias.matricula_id', $matricula->id)
@@ -157,21 +130,19 @@ class AlunosProfessorController extends Controller
                 ->orderByDesc('aulas.data_aula');
 
             // Query agregada precisa selecionar apenas colunas agregadas (compatível com ONLY_FULL_GROUP_BY).
-            if (! $usouFrequenciaBimestre) {
-                $freqResumo = Frequencia::query()
-                    ->join('aulas', 'frequencias.aula_id', '=', 'aulas.id')
-                    ->where('frequencias.matricula_id', $matricula->id)
-                    ->where('aulas.turma_id', $turma->id)
-                    ->whereIn('aulas.disciplina_id', $didFreqs)
-                    ->where('aulas.periodo', $periodoAtual)
-                    ->selectRaw("SUM(CASE WHEN frequencias.situacao='presente' THEN 1 ELSE 0 END) as presentes")
-                    ->selectRaw("SUM(CASE WHEN frequencias.situacao='falta' THEN 1 ELSE 0 END) as faltas")
-                    ->selectRaw("SUM(CASE WHEN frequencias.situacao='justificada' THEN 1 ELSE 0 END) as justificadas")
-                    ->selectRaw("SUM(CASE WHEN frequencias.situacao='atraso' THEN 1 ELSE 0 END) as atrasos")
-                    ->first();
+            $freqResumo = Frequencia::query()
+                ->join('aulas', 'frequencias.aula_id', '=', 'aulas.id')
+                ->where('frequencias.matricula_id', $matricula->id)
+                ->where('aulas.turma_id', $turma->id)
+                ->whereIn('aulas.disciplina_id', $didFreqs)
+                ->where('aulas.periodo', $periodoAtual)
+                ->selectRaw("SUM(CASE WHEN frequencias.situacao='presente' THEN 1 ELSE 0 END) as presentes")
+                ->selectRaw("SUM(CASE WHEN frequencias.situacao='falta' THEN 1 ELSE 0 END) as faltas")
+                ->selectRaw("SUM(CASE WHEN frequencias.situacao='justificada' THEN 1 ELSE 0 END) as justificadas")
+                ->selectRaw("SUM(CASE WHEN frequencias.situacao='atraso' THEN 1 ELSE 0 END) as atrasos")
+                ->first();
 
-                $ultimasFrequencias = $freqBase->limit(20)->get();
-            }
+            $ultimasFrequencias = $freqBase->limit(20)->get();
         }
 
         // Avaliações e notas (todas as disciplinas do professor na turma).

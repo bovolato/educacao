@@ -187,16 +187,17 @@ Route::middleware('auth')->group(function () {
 
         Route::get('turmas', [TurmasProfessorController::class, 'index'])->name('turmas.index');
 
-        Route::get('frequencias', [FrequenciasBimestreProfessorController::class, 'index'])->name('frequencias.index');
-        Route::get('frequencias/create', [FrequenciasBimestreProfessorController::class, 'create'])->name('frequencias.create');
-        Route::post('frequencias', [FrequenciasBimestreProfessorController::class, 'store'])->name('frequencias.store');
-        Route::get('frequencias/{frequenciaBimestre}/edit', [FrequenciasBimestreProfessorController::class, 'edit'])->name('frequencias.edit');
-        Route::put('frequencias/{frequenciaBimestre}', [FrequenciasBimestreProfessorController::class, 'update'])->name('frequencias.update');
-
-        // Legado (por aula)
-        Route::get('frequencias-por-aula', [FrequenciasProfessorController::class, 'index'])->name('frequencias.legado.index');
+        // Frequência (principal): por aula
+        Route::get('frequencias', [FrequenciasProfessorController::class, 'index'])->name('frequencias.index');
         Route::get('frequencias/aulas/{aula}/edit', [FrequenciasProfessorController::class, 'edit'])->name('frequencias.aula.edit');
         Route::put('frequencias/aulas/{aula}', [FrequenciasProfessorController::class, 'update'])->name('frequencias.aula.update');
+
+        // Legado (por bimestre)
+        Route::get('frequencias-bimestre', [FrequenciasBimestreProfessorController::class, 'index'])->name('frequencias-bimestre.index');
+        Route::get('frequencias-bimestre/create', [FrequenciasBimestreProfessorController::class, 'create'])->name('frequencias-bimestre.create');
+        Route::post('frequencias-bimestre', [FrequenciasBimestreProfessorController::class, 'store'])->name('frequencias-bimestre.store');
+        Route::get('frequencias-bimestre/{frequenciaBimestre}/edit', [FrequenciasBimestreProfessorController::class, 'edit'])->name('frequencias-bimestre.edit');
+        Route::put('frequencias-bimestre/{frequenciaBimestre}', [FrequenciasBimestreProfessorController::class, 'update'])->name('frequencias-bimestre.update');
 
         Route::get('notas', [NotasProfessorController::class, 'index'])->name('notas.index');
         Route::get('notas/avaliacoes/{avaliacao}/lancar', [NotasProfessorController::class, 'lancar'])->name('notas.lancar');

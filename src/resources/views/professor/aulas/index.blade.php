@@ -45,11 +45,19 @@
                             <th class="px-5 py-3">Data</th>
                             <th class="px-5 py-3">Status</th>
                             <th class="px-5 py-3">Registro de conteúdo</th>
+                            <th class="px-5 py-3">Frequência</th>
                             <th class="px-5 py-3"></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
+                        @php
+                            $totalMatriculas = $turmaSelecionada?->matriculasAtivas()?->count() ?? null;
+                        @endphp
                         @foreach($aulas as $aula)
+                            @php
+                                $lancadas = (int) ($aula->frequencias_count ?? 0);
+                                $concluida = $totalMatriculas !== null && $totalMatriculas > 0 && $lancadas >= $totalMatriculas;
+                            @endphp
                             <tr class="hover:bg-gray-50/80">
                                 <td class="px-5 py-3 font-medium text-gray-900">{{ $aula->data_aula?->format('d/m/Y') }}</td>
                                 <td class="px-5 py-3"><span class="capitalize">{{ str_replace('_', ' ', $aula->status) }}</span></td>
@@ -60,8 +68,23 @@
                                         <span class="text-amber-700">Pendente</span>
                                     @endif
                                 </td>
+                                <td class="px-5 py-3">
+                                    @if($totalMatriculas !== null)
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <x-badge color="{{ $concluida ? 'green' : ($lancadas > 0 ? 'yellow' : 'gray') }}">
+                                                {{ $concluida ? 'Concluída' : ($lancadas > 0 ? 'Em andamento' : 'Pendente') }}
+                                            </x-badge>
+                                            <span class="text-xs text-gray-500">{{ $lancadas }}/{{ $totalMatriculas }}</span>
+                                        </div>
+                                    @else
+                                        <span class="text-xs text-gray-500">—</span>
+                                    @endif
+                                </td>
                                 <td class="px-5 py-3 text-right">
-                                    <a href="{{ route('professor.aulas.conteudo', $aula) }}" class="text-indigo-600 hover:underline font-medium">Registrar / editar conteúdo</a>
+                                    <div class="flex items-center justify-end gap-4">
+                                        <a href="{{ route('professor.frequencias.aula.edit', $aula) }}" class="text-indigo-600 hover:underline font-medium">Lançar presença</a>
+                                        <a href="{{ route('professor.aulas.conteudo', $aula) }}" class="text-indigo-600 hover:underline font-medium">Registrar / editar conteúdo</a>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach

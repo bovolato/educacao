@@ -71,6 +71,7 @@ class AulasProfessorController extends Controller
                     ->where('professor_id', $prof->id)
                     ->where('periodo', $periodoAtual)
                     ->withCount('conteudos')
+                    ->withCount('frequencias')
                     ->orderByDesc('data_aula')
                     ->paginate(20)
                     ->withQueryString();
@@ -84,6 +85,7 @@ class AulasProfessorController extends Controller
                     ->where('professor_id', $prof->id)
                     ->where('periodo', $periodoAtual)
                     ->withCount('conteudos')
+                    ->withCount('frequencias')
                     ->orderByDesc('data_aula')
                     ->paginate(20)
                     ->withQueryString();
@@ -149,7 +151,7 @@ class AulasProfessorController extends Controller
             abort_unless($escopo->professorLecaDisciplinaNaTurma($prof, (int) $turma->id, (int) $data['disciplina_id']), 403);
         }
 
-        Aula::create([
+        $aula = Aula::create([
             'turma_id'      => $data['turma_id'],
             'disciplina_id' => $data['disciplina_id'],
             'professor_id'  => $prof->id,
@@ -160,12 +162,10 @@ class AulasProfessorController extends Controller
             'periodo'       => $periodoAtual,
         ]);
 
+        // Fluxo didático: após registrar a aula, já abre a lista de presença dessa aula.
         return redirect()
-            ->route('professor.aulas.index', $turma->polivalente
-                ? ['turma_id' => $turma->id]
-                : ['turma_id' => $turma->id, 'disciplina_id' => $data['disciplina_id']]
-            )
-            ->with('success', 'Aula registrada.');
+            ->route('professor.frequencias.aula.edit', $aula)
+            ->with('success', 'Aula registrada. Agora lance a frequência desta aula.');
     }
 
     public function conteudo(Aula $aula)

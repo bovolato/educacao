@@ -1,21 +1,22 @@
 # SIGEM — Sistema Integrado de Gestão Educacional Municipal
 
-Plataforma municipal de gestão educacional desenvolvida em Laravel 12 + Docker + Tailwind CSS.
+Plataforma municipal de gestão educacional desenvolvida em Laravel 12 + Laravel Sail + Tailwind CSS.
 
 ## Stack
 
-- **Backend:** Laravel 12 (PHP 8.4-FPM)
+- **Backend:** Laravel 12 (PHP 8.4)
 - **Frontend:** Blade + Tailwind CSS + Alpine.js
 - **Banco de dados:** MySQL 8
 - **Permissões:** Spatie Laravel Permission
-- **Infraestrutura:** Docker Desktop + Nginx
+- **Infraestrutura:** Laravel Sail (Docker)
+
+> O ambiente de desenvolvimento roda via **Laravel Sail** a partir do diretório `educacao/`.
 
 ## Acessos
 
 | Serviço | URL |
 |---------|-----|
 | Sistema | http://localhost/ |
-| phpMyAdmin | http://localhost:8080/ |
 
 ### Usuário padrão
 
@@ -27,49 +28,59 @@ Plataforma municipal de gestão educacional desenvolvida em Laravel 12 + Docker 
 
 ## Como rodar
 
+Todos os comandos rodam dentro de `educacao/`.
+
 ```bash
-# 1. Subir os containers
-docker-compose up -d
+cd educacao
 
-# 2. Aguardar o MySQL inicializar (~30s na primeira vez)
+# 1. Criar o .env (primeira vez)
+cp .env.example .env
 
-# 3. Rodar migrations e seeders
-docker exec sigem_app php artisan migrate --force
-docker exec sigem_app php artisan db:seed --force
+# 2. Subir os containers do Sail
+./vendor/bin/sail up -d
+
+# 3. Gerar a APP_KEY
+./vendor/bin/sail artisan key:generate
+
+# 4. Rodar migrations e seeders
+./vendor/bin/sail artisan migrate --force
+./vendor/bin/sail artisan db:seed --force
+
+# 5. Instalar dependências de front e buildar assets
+./vendor/bin/sail npm install
+./vendor/bin/sail npm run build
 ```
+
+> Dica: crie um alias `alias sail='./vendor/bin/sail'` para encurtar os comandos.
 
 ## Comandos úteis
 
 ```bash
 # Parar os containers
-docker-compose stop
+./vendor/bin/sail stop
 
 # Ver logs
-docker-compose logs -f app
+./vendor/bin/sail logs -f
 
-# Acessar o container PHP
-docker exec -it sigem_app bash
+# Shell no container da aplicação
+./vendor/bin/sail shell
 
 # Rodar migrations
-docker exec sigem_app php artisan migrate
+./vendor/bin/sail artisan migrate
 
-# Rebuild de assets (Tailwind/Vite)
-docker exec sigem_app npm run build
+# Vite em modo dev
+./vendor/bin/sail npm run dev
 
 # Limpar caches
-docker exec sigem_app php artisan optimize:clear
+./vendor/bin/sail artisan optimize:clear
 ```
 
 ## Estrutura do projeto
 
 ```
 educacao/
-├── docker-compose.yml
-├── docker/
-│   ├── nginx/default.conf
-│   ├── php/Dockerfile
-│   └── mysql/init.sql
-└── src/                          ← Projeto Laravel
+└── educacao/                     ← Projeto Laravel (raiz do Sail)
+    ├── docker-compose.yml        ← Stack do Laravel Sail
     ├── app/
     │   ├── Models/
     │   │   ├── Institucional/    (Municipio, Escola, Serie, Turno...)

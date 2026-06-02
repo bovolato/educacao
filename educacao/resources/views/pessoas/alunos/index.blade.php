@@ -11,10 +11,10 @@
     <form method="GET" class="flex flex-wrap gap-3 mb-5">
         <input type="text" name="busca" value="{{ request('busca') }}" placeholder="Buscar por nome ou CPF..."
             class="flex-1 min-w-[200px] px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-        <select name="cidade" class="min-w-[160px] px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-            <option value="">Todas as cidades</option>
-            @foreach($cidades as $cidade)
-                <option value="{{ $cidade }}" @selected(request('cidade') === $cidade)>{{ $cidade }}</option>
+        <select name="municipio_id" class="min-w-[160px] px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <option value="">Todos os municípios</option>
+            @foreach($municipios as $municipio)
+                <option value="{{ $municipio->id }}" @selected(request('municipio_id') == $municipio->id)>{{ $municipio->nome }} - {{ $municipio->uf }}</option>
             @endforeach
         </select>
         <select name="status" class="px-4 py-2 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
@@ -23,7 +23,7 @@
             <option value="inativo" @selected(request('status') === 'inativo')>Inativos</option>
         </select>
         <button type="submit" class="px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors">Filtrar</button>
-        @if(request()->hasAny(['busca', 'cidade', 'status']))
+        @if(request()->hasAny(['busca', 'municipio_id', 'status']))
             <a href="{{ route('pessoas.alunos.index') }}" class="px-5 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-200 transition-colors">Limpar</a>
         @endif
     </form>
